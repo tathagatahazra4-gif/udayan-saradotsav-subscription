@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 
@@ -19,6 +19,40 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Udayan Saradotsav Subscription System",
   description: "Subscription Collection Management System",
+
+  applicationName: "Udayan",
+
+  manifest: "/manifest.json",
+
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Udayan",
+  },
+
+  icons: {
+    icon: [
+      {
+        url: "/icon-192.png",
+        sizes: "192x192",
+        type: "image/png",
+      },
+      {
+        url: "/icon-512.png",
+        sizes: "512x512",
+        type: "image/png",
+      },
+    ],
+    apple: [
+      {
+        url: "/apple-touch-icon.png",
+      },
+    ],
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#1e3a8a",
 };
 
 export default function RootLayout({
@@ -33,7 +67,6 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <AuthProvider>
-
           {children}
 
           <Toaster
@@ -47,13 +80,11 @@ export default function RootLayout({
                 color: "#fff",
                 fontSize: "14px",
               },
-
               success: {
                 style: {
                   background: "#16a34a",
                 },
               },
-
               error: {
                 style: {
                   background: "#dc2626",
@@ -61,7 +92,6 @@ export default function RootLayout({
               },
             }}
           />
-
         </AuthProvider>
       </body>
     </html>
