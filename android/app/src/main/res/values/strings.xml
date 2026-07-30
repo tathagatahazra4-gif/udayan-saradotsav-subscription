@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Udayan Saradotsav Subscription</string>
+    <string name="title_activity_main">Udayan Saradotsav Subscription</string>
+    <string name="package_name">com.udayan.subscription</string>
+    <string name="custom_url_scheme">com.udayan.subscription</string>
+</resources>
