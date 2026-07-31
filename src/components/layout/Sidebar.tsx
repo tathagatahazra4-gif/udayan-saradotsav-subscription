@@ -13,7 +13,13 @@ import {
   FaCog,
   FaSignOutAlt,
   FaFileImport,
+  FaTimes,
 } from "react-icons/fa";
+
+interface SidebarProps {
+  open: boolean;
+  onClose: () => void;
+}
 
 const menu = [
   {
@@ -63,60 +69,154 @@ const menu = [
   },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({
+  open,
+  onClose,
+}: SidebarProps) {
   const pathname = usePathname();
 
   return (
-    <aside className="w-64 bg-blue-900 text-white min-h-screen flex flex-col">
+    <>
+      {/* Mobile Overlay */}
 
-      <div className="p-5 border-b border-blue-700">
-        <h2 className="font-bold text-xl">
-          UDAYAN
-        </h2>
+      <div
+        onClick={onClose}
+        className={`fixed inset-0 bg-black/50 z-40 md:hidden transition-opacity duration-300 ${
+          open
+            ? "opacity-100 visible"
+            : "opacity-0 invisible pointer-events-none"
+        }`}
+      />
 
-        <p className="text-sm text-blue-200">
-          Subscription Management
-        </p>
-      </div>
+      {/* Sidebar */}
 
-      <nav className="flex-1 mt-4">
+      <aside
+        className={`
+          fixed md:static
+          top-0 left-0
+          z-50
+          h-screen
+          w-64
+          bg-blue-900
+          text-white
+          flex flex-col
+          transform
+          transition-transform
+          duration-300
+          shrink-0
 
-        {menu.map((item) => {
-          const Icon = item.icon;
+          ${
+            open
+              ? "translate-x-0"
+              : "-translate-x-full md:translate-x-0"
+          }
+        `}
+      >
 
-          const isActive =
-            pathname === item.href ||
-            pathname.startsWith(item.href + "/");
+        {/* Header */}
 
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center gap-3 px-5 py-3 transition-colors ${
-                isActive
-                  ? "bg-blue-700 font-semibold"
-                  : "hover:bg-blue-800"
-              }`}
+        <div className="p-5 border-b border-blue-700">
+
+          <div className="flex items-center justify-between">
+
+            <div>
+              <h2 className="font-bold text-2xl">
+                UDAYAN
+              </h2>
+
+              <p className="text-blue-200 text-sm mt-1">
+                Subscription Management
+              </p>
+            </div>
+
+            {/* Mobile Close Button */}
+
+            <button
+              onClick={onClose}
+              className="md:hidden p-2 rounded-lg hover:bg-blue-800 transition"
+              aria-label="Close menu"
             >
-              <Icon className="text-lg" />
-              <span>{item.name}</span>
-            </Link>
-          );
-        })}
+              <FaTimes className="text-lg" />
+            </button>
 
-      </nav>
+          </div>
 
-      <div className="border-t border-blue-700 p-4">
+        </div>
 
-        <button
-          className="flex items-center gap-3 w-full px-2 py-2 hover:bg-blue-800 rounded"
-        >
-          <FaSignOutAlt />
-          Logout
-        </button>
+        {/* Navigation */}
 
-      </div>
+        <nav className="flex-1 mt-3 overflow-y-auto">
 
-    </aside>
+          {menu.map((item) => {
+
+            const Icon = item.icon;
+
+            const isActive =
+              pathname === item.href ||
+              pathname.startsWith(item.href + "/");
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={onClose}
+                className={`
+                  flex
+                  items-center
+                  gap-4
+                  px-5
+                  py-4
+                  transition-colors
+                  whitespace-nowrap
+                  ${
+                    isActive
+                      ? "bg-blue-700 font-semibold"
+                      : "hover:bg-blue-800"
+                  }
+                `}
+              >
+
+                <Icon className="text-xl shrink-0" />
+
+                <span className="text-base">
+                  {item.name}
+                </span>
+
+              </Link>
+            );
+
+          })}
+
+        </nav>
+
+        {/* Logout */}
+
+        <div className="border-t border-blue-700 p-4">
+
+          <button
+            className="
+              flex
+              items-center
+              gap-3
+              w-full
+              px-3
+              py-3
+              rounded
+              hover:bg-blue-800
+              transition
+            "
+          >
+            <FaSignOutAlt />
+
+            <span>
+              Logout
+            </span>
+
+          </button>
+
+        </div>
+
+      </aside>
+    </>
   );
 }
