@@ -2,25 +2,18 @@ import { supabase } from "@/supabase/client";
 
 export async function getBuildingCollection() {
   const { data, error } = await supabase
-    .from("flats")
-    .select(
-      "building_no, building_type, subscription_amount, status"
-    );
+   .from("flats")
+   .select("building_no, building_type, subscription_amount, status");
 
   if (error) throw error;
+  if (!data || data.length === 0) return [];
 
-  const grouped: Record<
-    string,
-    {
-      building: string;
-      collection: number;
-      paid: number;
-      pending: number;
-    }
-  > = {};
+  const grouped: Record<string, any> = {};
 
   data.forEach((flat: any) => {
-    const key = `${flat.building_type}-${flat.building_no}`;
+    const bType = flat.building_type || "UG"; // fallback if null
+    const bNo = flat.building_no || "0";
+    const key = `${bType}-${bNo}`;
 
     if (!grouped[key]) {
       grouped[key] = {
@@ -31,16 +24,15 @@ export async function getBuildingCollection() {
       };
     }
 
-    if (flat.status === "Paid") {
+    if (flat.status?.toLowerCase() === "paid") {
       grouped[key].paid++;
-      grouped[key].collection +=
-        flat.subscription_amount || 0;
+      grouped[key].collection += Number(flat.subscription_amount) || 0;
     } else {
       grouped[key].pending++;
     }
   });
 
-  return Object.values(grouped).sort((a, b) =>
+  return Object.values(grouped).sort((a: any, b: any) =>
     a.building.localeCompare(b.building)
   );
 }

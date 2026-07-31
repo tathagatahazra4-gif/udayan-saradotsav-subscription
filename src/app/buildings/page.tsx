@@ -30,9 +30,7 @@ export default function BuildingsPage() {
   }, []);
 
   const filteredBuildings = buildings.filter((building) =>
-    building.building
-      .toLowerCase()
-      .includes(search.toLowerCase())
+    building.building.toLowerCase().includes(search.toLowerCase())
   );
 
   if (loading) {
@@ -52,20 +50,19 @@ export default function BuildingsPage() {
   return (
     <ProtectedRoute>
       <AppLayout>
-
         <div className="space-y-6">
 
           {/* Header */}
 
-          <div className="flex flex-col lg:flex-row justify-between lg:items-center gap-5">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
 
             <div>
 
-              <h1 className="text-4xl font-bold text-blue-900">
+              <h1 className="text-2xl md:text-4xl font-bold text-blue-900">
                 Buildings Overview
               </h1>
 
-              <p className="text-gray-500 mt-2">
+              <p className="text-sm md:text-base text-gray-500 mt-1 md:mt-2">
                 View collection progress for each building.
               </p>
 
@@ -76,14 +73,14 @@ export default function BuildingsPage() {
               placeholder="Search Building..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="border rounded-lg px-4 py-3 w-full lg:w-80 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full md:w-80 border rounded-xl px-4 py-3 text-base shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
 
           </div>
 
           {/* Summary */}
 
-          <div className="bg-white rounded-2xl shadow-lg p-6">
+          <div className="bg-white rounded-2xl shadow-lg p-4 md:p-6">
 
             <div className="flex justify-between items-center">
 
@@ -93,13 +90,13 @@ export default function BuildingsPage() {
                   Total Buildings
                 </p>
 
-                <h2 className="text-3xl font-bold text-blue-900">
+                <h2 className="text-2xl md:text-3xl font-bold text-blue-900">
                   {filteredBuildings.length}
                 </h2>
 
               </div>
 
-              <FaBuilding className="text-5xl text-blue-600" />
+              <FaBuilding className="text-4xl md:text-5xl text-blue-600" />
 
             </div>
 
@@ -107,46 +104,45 @@ export default function BuildingsPage() {
 
           {/* Building Cards */}
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
 
             {filteredBuildings.map((building) => {
 
-              const total =
-                building.paid + building.pending;
+              const total = building.paid + building.pending;
 
               const percentage =
                 total === 0
                   ? 0
-                  : Math.round(
-                      (building.paid / total) * 100
-                    );
+                  : Math.round((building.paid / total) * 100);
 
               return (
 
                 <div
                   key={building.building}
-                  className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition"
+                  className="bg-white rounded-2xl shadow-lg p-5 md:p-6 hover:shadow-xl transition-all duration-300"
                 >
 
                   <div className="flex justify-between items-center">
 
                     <div>
 
-                      <h2 className="text-2xl font-bold text-blue-900">
+                      <h2 className="text-xl md:text-2xl font-bold text-blue-900">
                         {building.building}
                       </h2>
 
-                      <p className="text-gray-500">
+                      <p className="text-gray-500 text-sm">
                         Building Summary
                       </p>
 
                     </div>
 
-                    <FaBuilding className="text-4xl text-blue-500" />
+                    <FaBuilding className="text-3xl md:text-4xl text-blue-500" />
 
                   </div>
 
-                  <div className="grid grid-cols-3 gap-4 mt-6">
+                  {/* Statistics */}
+
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6">
 
                     <div>
 
@@ -154,7 +150,7 @@ export default function BuildingsPage() {
                         Paid
                       </p>
 
-                      <h3 className="text-2xl font-bold text-green-600">
+                      <h3 className="text-xl md:text-2xl font-bold text-green-600">
                         {building.paid}
                       </h3>
 
@@ -166,19 +162,19 @@ export default function BuildingsPage() {
                         Pending
                       </p>
 
-                      <h3 className="text-2xl font-bold text-red-600">
+                      <h3 className="text-xl md:text-2xl font-bold text-red-600">
                         {building.pending}
                       </h3>
 
                     </div>
 
-                    <div>
+                    <div className="col-span-2 md:col-span-1">
 
                       <p className="text-gray-500 text-sm">
                         Collection
                       </p>
 
-                      <h3 className="text-xl font-bold text-purple-700">
+                      <h3 className="text-lg md:text-xl font-bold text-purple-700 break-words">
                         ₹{building.collection}
                       </h3>
 
@@ -202,10 +198,10 @@ export default function BuildingsPage() {
 
                     </div>
 
-                    <div className="w-full h-3 bg-gray-200 rounded-full">
+                    <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
 
                       <div
-                        className="h-3 bg-green-600 rounded-full"
+                        className="h-3 bg-green-600 rounded-full transition-all duration-500"
                         style={{
                           width: `${percentage}%`,
                         }}
@@ -215,11 +211,13 @@ export default function BuildingsPage() {
 
                   </div>
 
+                  {/* Button */}
+
                   <div className="mt-8">
 
                     <Link
                       href={`/buildings/${building.building}`}
-                      className="block text-center bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold transition"
+                      className="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold transition text-base"
                     >
                       View Flats →
                     </Link>
@@ -244,7 +242,6 @@ export default function BuildingsPage() {
           </div>
 
         </div>
-
       </AppLayout>
     </ProtectedRoute>
   );

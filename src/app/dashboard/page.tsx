@@ -239,7 +239,7 @@ export default function DashboardPage() {
 
           {/* Charts */}
 
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
 
             <div className="bg-white rounded-2xl shadow p-6">
 
