@@ -10,11 +10,8 @@ export default function PaymentForm() {
   const flatInputRef = useRef<HTMLInputElement>(null);
 
   const [flatNumber, setFlatNumber] = useState("");
-
   const [flat, setFlat] = useState<any>(null);
-
   const [form, setForm] = useState<any>(null);
-
   const [loading, setLoading] = useState(false);
 
   async function handleSearch() {
@@ -71,7 +68,6 @@ export default function PaymentForm() {
       toast.error("Flat not found");
 
       setFlat(null);
-
       setForm(null);
     } finally {
       setLoading(false);
@@ -79,37 +75,71 @@ export default function PaymentForm() {
   }
 
   async function handleSave() {
-    if (!form.owner_name)
+    if (!form.owner_name.trim()) {
       return toast.error("Owner Name is required.");
+    }
 
-    if (!form.mobile_number)
+    // Owner name validation
+    if (!/^[a-zA-Z\s]+$/.test(form.owner_name)) {
+      return toast.error(
+        "Owner Name can contain alphabets and spaces only."
+      );
+    }
+
+    // Mobile number validation
+    if (!form.mobile_number) {
       return toast.error("Mobile Number is required.");
+    }
 
-    if (!form.family_members)
+    if (!/^\d{10}$/.test(form.mobile_number)) {
+      return toast.error(
+        "Mobile Number must contain exactly 10 digits."
+      );
+    }
+
+    if (!form.family_members) {
       return toast.error(
         "Please enter number of family members."
       );
+    }
 
-    if (!form.subscription_amount)
+    if (!form.subscription_amount) {
       return toast.error(
         "Please enter subscription amount."
       );
+    }
 
-    if (!form.payment_mode)
+    if (!form.payment_mode) {
       return toast.error(
         "Please select payment mode."
       );
+    }
 
-    if (!form.collected_by)
+    if (!form.collected_by.trim()) {
       return toast.error(
         "Please enter collector name."
       );
+    }
+
+    // Collected By validation
+    if (!/^[a-zA-Z\s]+$/.test(form.collected_by)) {
+      return toast.error(
+        "Collector name can contain alphabets and spaces only."
+      );
+    }
+
+    // Payment must be marked as Paid
+    if (form.status !== "Paid") {
+      return toast.error(
+        "Please change Payment Status to Paid before collecting the subscription."
+      );
+    }
 
     try {
       setLoading(true);
 
       await updatePayment(flat.flat_number, {
-        owner_name: form.owner_name,
+        owner_name: form.owner_name.trim(),
 
         mobile_number: form.mobile_number,
 
@@ -130,7 +160,7 @@ export default function PaymentForm() {
           form.transaction_id,
 
         collected_by:
-          form.collected_by,
+          form.collected_by.trim(),
 
         status: form.status,
       });
@@ -155,6 +185,8 @@ export default function PaymentForm() {
 
   return (
     <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+
+      {/* Header */}
 
       <div className="bg-linear-to-r from-blue-700 to-blue-900 px-8 py-6">
 
@@ -211,6 +243,8 @@ export default function PaymentForm() {
 
         </div>
 
+        {/* Flat Details */}
+
         {flat && form && (
 
           <div className="mt-8">
@@ -257,7 +291,11 @@ export default function PaymentForm() {
 
             </div>
 
+            {/* Form Fields */}
+
             <div className="grid lg:grid-cols-2 gap-6">
+
+              {/* Owner Name */}
 
               <div>
 
@@ -266,6 +304,7 @@ export default function PaymentForm() {
                 </label>
 
                 <input
+                  type="text"
                   className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none"
                   placeholder="Enter owner name"
                   value={form.owner_name}
@@ -273,12 +312,17 @@ export default function PaymentForm() {
                     setForm({
                       ...form,
                       owner_name:
-                        e.target.value,
+                        e.target.value.replace(
+                          /[^a-zA-Z\s]/g,
+                          ""
+                        ),
                     })
                   }
                 />
 
               </div>
+
+              {/* Mobile Number */}
 
               <div>
 
@@ -287,19 +331,27 @@ export default function PaymentForm() {
                 </label>
 
                 <input
+                  type="tel"
+                  inputMode="numeric"
+                  maxLength={10}
+                  pattern="[0-9]{10}"
                   className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none"
-                  placeholder="Enter mobile number"
+                  placeholder="Enter 10 digit mobile number"
                   value={form.mobile_number}
                   onChange={(e) =>
                     setForm({
                       ...form,
                       mobile_number:
-                        e.target.value,
+                        e.target.value
+                          .replace(/\D/g, "")
+                          .slice(0, 10),
                     })
                   }
                 />
 
               </div>
+
+              {/* Family Members */}
 
               <div>
 
@@ -309,6 +361,7 @@ export default function PaymentForm() {
 
                 <input
                   type="number"
+                  min="1"
                   className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none"
                   placeholder="Enter number of family members"
                   value={form.family_members}
@@ -323,6 +376,8 @@ export default function PaymentForm() {
 
               </div>
 
+              {/* Subscription Amount */}
+
               <div>
 
                 <label className="block font-semibold mb-2">
@@ -331,6 +386,7 @@ export default function PaymentForm() {
 
                 <input
                   type="number"
+                  min="0"
                   className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none"
                   placeholder="Enter subscription amount"
                   value={form.subscription_amount}
@@ -344,7 +400,10 @@ export default function PaymentForm() {
                 />
 
               </div>
-                            <div>
+
+              {/* Payment Mode */}
+
+              <div>
 
                 <label className="block font-semibold mb-2">
                   Payment Mode *
@@ -356,10 +415,12 @@ export default function PaymentForm() {
                   onChange={(e) =>
                     setForm({
                       ...form,
-                      payment_mode: e.target.value,
+                      payment_mode:
+                        e.target.value,
                     })
                   }
                 >
+
                   <option value="">
                     Select Payment Mode
                   </option>
@@ -379,6 +440,8 @@ export default function PaymentForm() {
                 </select>
 
               </div>
+
+              {/* Receipt Number */}
 
               <div>
 
@@ -401,6 +464,8 @@ export default function PaymentForm() {
 
               </div>
 
+              {/* Transaction ID */}
+
               <div>
 
                 <label className="block font-semibold mb-2">
@@ -422,6 +487,8 @@ export default function PaymentForm() {
 
               </div>
 
+              {/* Collected By */}
+
               <div>
 
                 <label className="block font-semibold mb-2">
@@ -429,6 +496,7 @@ export default function PaymentForm() {
                 </label>
 
                 <input
+                  type="text"
                   className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none"
                   placeholder="Volunteer name"
                   value={form.collected_by}
@@ -436,12 +504,17 @@ export default function PaymentForm() {
                     setForm({
                       ...form,
                       collected_by:
-                        e.target.value,
+                        e.target.value.replace(
+                          /[^a-zA-Z\s]/g,
+                          ""
+                        ),
                     })
                   }
                 />
 
               </div>
+
+              {/* Payment Status */}
 
               <div className="lg:col-span-2">
 
@@ -459,6 +532,7 @@ export default function PaymentForm() {
                     })
                   }
                 >
+
                   <option value="Pending">
                     🔴 Pending
                   </option>
@@ -473,16 +547,28 @@ export default function PaymentForm() {
 
             </div>
 
+            {/* Collect Button */}
+
             <div className="mt-10">
 
               <button
                 onClick={handleSave}
-                disabled={loading}
-                className="w-full bg-green-600 hover:bg-green-700 text-white text-lg font-bold py-4 rounded-xl shadow-lg transition-all disabled:bg-gray-400"
+                disabled={
+                  loading ||
+                  form.status !== "Paid"
+                }
+                className={`w-full text-lg font-bold py-4 rounded-xl shadow-lg transition-all ${
+                  form.status === "Paid" &&
+                  !loading
+                    ? "bg-green-600 hover:bg-green-700 text-white"
+                    : "bg-gray-400 text-gray-200 cursor-not-allowed"
+                }`}
               >
                 {loading
                   ? "Saving Payment..."
-                  : "💰 Collect Subscription"}
+                  : form.status === "Paid"
+                  ? "💰 Collect Subscription"
+                  : "🔒 Select Paid to Collect"}
               </button>
 
             </div>
