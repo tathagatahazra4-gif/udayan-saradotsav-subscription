@@ -1,4 +1,5 @@
 import { supabase } from "@/supabase/client";
+import { getLoggedInUser } from "@/services/authService";
 
 /**
  * Search a single flat by flat number
@@ -14,7 +15,23 @@ export async function searchFlat(flatNumber: string) {
     throw error;
   }
 
-  return data;
+  const user = getLoggedInUser();
+
+  if (!user) {
+    throw new Error("User not logged in.");
+  }
+
+  const isAdmin = user.role === "admin";
+
+  const canEdit =
+    isAdmin ||
+    !data.collected_by ||
+    data.collected_by === user.username;
+
+  return {
+    ...data,
+    canEdit,
+  };
 }
 
 /**

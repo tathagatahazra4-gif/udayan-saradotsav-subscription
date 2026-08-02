@@ -2,31 +2,39 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+
 import { useAuth } from "@/components/providers/AuthProvider";
+import { getLoggedInUser } from "@/services/authService";
 
 export default function ProtectedRoute({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { session, loading } = useAuth();
+  const { user, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && !session) {
+    // Check custom committee login
+    const committeeUser = getLoggedInUser();
+
+    if (!loading && (!user || !committeeUser)) {
       router.replace("/login");
     }
-  }, [loading, session, router]);
+  }, [loading, user, router]);
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        Checking authentication...
+        Loading...
       </div>
     );
   }
 
-  if (!session) return null;
+  // Prevent rendering if either authentication fails
+  if (!user || !getLoggedInUser()) {
+    return null;
+  }
 
   return <>{children}</>;
 }

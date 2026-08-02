@@ -2,12 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/supabase/client";
+
+import { login } from "@/services/authService";
+import { logLogin } from "@/services/activityService";
 
 export default function LoginPage() {
   const router = useRouter();
 
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
   const [loading, setLoading] = useState(false);
@@ -19,19 +21,17 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      await login(username.trim(), password);
 
-    setLoading(false);
+      await logLogin(username.trim());
 
-    if (error) {
-      setError(error.message);
-      return;
+      router.replace("/dashboard");
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
-
-    router.push("/dashboard");
   }
 
   return (
@@ -39,26 +39,37 @@ export default function LoginPage() {
 
       <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
 
-        <h1 className="text-3xl font-bold text-center mb-8 text-blue-900">
-          UDAYAN SARADOTSAV
+        <h1 className="text-3xl font-bold text-center text-blue-900">
+          UDAYAN SARADOTSAV SAMITY
         </h1>
 
-        <form onSubmit={handleLogin} className="space-y-5">
+        <p className="text-center text-gray-500 mt-2 mb-8">
+          Committee Login
+        </p>
+
+        <form
+          onSubmit={handleLogin}
+          className="space-y-5"
+        >
 
           <input
-            type="email"
-            placeholder="Email"
-            className="w-full border rounded p-3"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            type="text"
+            placeholder="Username"
+            className="w-full border rounded p-3 focus:ring-2 focus:ring-blue-500 outline-none"
+            value={username}
+            onChange={(e) =>
+              setUsername(e.target.value)
+            }
           />
 
           <input
             type="password"
             placeholder="Password"
-            className="w-full border rounded p-3"
+            className="w-full border rounded p-3 focus:ring-2 focus:ring-blue-500 outline-none"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) =>
+              setPassword(e.target.value)
+            }
           />
 
           {error && (
@@ -70,9 +81,11 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-700 text-white rounded p-3"
+            className="w-full bg-blue-700 hover:bg-blue-800 disabled:bg-gray-400 text-white rounded p-3 font-semibold transition"
           >
-            {loading ? "Logging in..." : "Login"}
+            {loading
+              ? "Logging in..."
+              : "Login"}
           </button>
 
         </form>

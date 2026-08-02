@@ -9,11 +9,13 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { getDashboardStats } from "@/services/dashboardService";
 import { getRecentPayments } from "@/services/recentPaymentsService";
 import { getBuildingCollection } from "@/services/chartService";
+import { getVolunteerCollectionReport } from "@/services/reportService";
 
 import StatCard from "@/components/dashboard/StatCard";
 import RecentPayments from "@/components/dashboard/RecentPayments";
 import CollectionCharts from "@/components/dashboard/CollectionCharts";
 import BuildingCollectionChart from "@/components/dashboard/BuildingCollectionChart";
+import VolunteerCollectionChart from "@/components/dashboard/VolunteerCollectionChart";
 
 import {
   FaBuilding,
@@ -32,6 +34,7 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<any>(null);
   const [recentPayments, setRecentPayments] = useState<any[]>([]);
   const [buildingData, setBuildingData] = useState<any[]>([]);
+  const [volunteerData, setVolunteerData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   async function loadDashboard() {
@@ -46,6 +49,11 @@ export default function DashboardPage() {
 
       const buildings = await getBuildingCollection();
       setBuildingData(buildings);
+
+      const volunteers =
+        await getVolunteerCollectionReport();
+
+      setVolunteerData(volunteers);
     } catch (error) {
       console.error("Error loading dashboard:", error);
     } finally {
@@ -81,6 +89,7 @@ export default function DashboardPage() {
   return (
     <ProtectedRoute>
       <AppLayout>
+
         <div className="space-y-8">
 
           {/* Welcome Banner */}
@@ -257,11 +266,19 @@ export default function DashboardPage() {
                 Building-wise Collection
               </h2>
 
-              <BuildingCollectionChart data={buildingData} />
+              <BuildingCollectionChart
+                data={buildingData}
+              />
 
             </div>
 
           </div>
+
+          {/* Volunteer Collection */}
+
+          <VolunteerCollectionChart
+            data={volunteerData}
+          />
 
           {/* Recent Payments */}
 
@@ -271,11 +288,14 @@ export default function DashboardPage() {
               Recent Payments
             </h2>
 
-            <RecentPayments payments={recentPayments} />
+            <RecentPayments
+              payments={recentPayments}
+            />
 
           </div>
 
         </div>
+
       </AppLayout>
     </ProtectedRoute>
   );

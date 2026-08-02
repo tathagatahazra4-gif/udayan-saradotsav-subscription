@@ -5,8 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { FaBars } from "react-icons/fa";
 
-import { supabase } from "@/supabase/client";
-import { getCurrentProfile } from "@/services/profileService";
+import { logLogout } from "@/services/activityService";
 
 interface NavbarProps {
   onMenuClick: () => void;
@@ -20,16 +19,11 @@ export default function Navbar({
   const [profile, setProfile] = useState<any>(null);
 
   useEffect(() => {
-    async function loadProfile() {
-      try {
-        const data = await getCurrentProfile();
-        setProfile(data);
-      } catch (err) {
-        console.error(err);
-      }
-    }
+    const user = JSON.parse(
+      localStorage.getItem("committeeUser") || "null"
+    );
 
-    loadProfile();
+    setProfile(user);
   }, []);
 
   async function handleLogout() {
@@ -39,9 +33,17 @@ export default function Navbar({
 
     if (!confirmLogout) return;
 
-    await supabase.auth.signOut();
+    try {
+      await logLogout(profile.username);
+    } catch (err) {
+      console.error(err);
+    }
+
+    localStorage.removeItem("committeeUser");
 
     router.replace("/login");
+
+    window.location.reload();
   }
 
   return (
@@ -52,8 +54,6 @@ export default function Navbar({
         {/* Left */}
 
         <div className="flex items-center gap-3">
-
-          {/* Mobile Hamburger */}
 
           <button
             onClick={onMenuClick}
@@ -80,20 +80,14 @@ export default function Navbar({
 
         <div className="flex items-center gap-4 md:gap-8">
 
-          {/* Hide extra info on phones */}
-
           <div className="hidden md:block text-right">
 
             <p className="font-bold text-blue-900">
-              {profile?.full_name ?? ""}
+              {profile?.username}
             </p>
 
             <p className="text-sm text-gray-600">
               {profile?.role}
-            </p>
-
-            <p className="text-xs text-gray-400">
-              {profile?.email}
             </p>
 
           </div>
@@ -112,7 +106,7 @@ export default function Navbar({
 
           <button
             onClick={handleLogout}
-            className="bg-red-600 hover:bg-red-700 text-white px-3 md:px-4 py-2 rounded-lg text-sm md:text-base"
+            className="bg-red-600 hover:bg-red-700 text-white px-3 md:px-4 py-2 rounded-lg text-sm md:text-base transition"
           >
             Logout
           </button>
