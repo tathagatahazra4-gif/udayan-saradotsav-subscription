@@ -9,10 +9,15 @@ export async function searchFlat(flatNumber: string) {
     .from("flats")
     .select("*")
     .eq("flat_number", flatNumber.toUpperCase())
-    .single();
+    .maybeSingle();
 
   if (error) {
     throw error;
+  }
+
+  // No flat found
+  if (!data) {
+    return null;
   }
 
   const user = getLoggedInUser();

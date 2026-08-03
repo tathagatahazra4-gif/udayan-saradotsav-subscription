@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 
 import { searchFlat } from "@/services/flatsService";
 import { updatePayment } from "@/services/paymentService";
+import { getLoggedInUser } from "@/services/authService";
 
 export default function PaymentForm() {
   const flatInputRef = useRef<HTMLInputElement>(null);
@@ -13,6 +14,20 @@ export default function PaymentForm() {
   const [flat, setFlat] = useState<any>(null);
   const [form, setForm] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+
+  const currentUser = getLoggedInUser();
+
+  const isAdmin = currentUser?.role === "Admin";
+
+  const canEdit = () => {
+    if (!form) return false;
+
+    if (!form.collected_by) return true;
+
+    if (isAdmin) return true;
+
+    return form.collected_by === currentUser?.username;
+  };
 
   async function handleSearch() {
     if (!flatNumber.trim()) {
@@ -54,8 +69,10 @@ export default function PaymentForm() {
         transaction_id:
           data.transaction_id ?? "",
 
-        collected_by:
-          data.collected_by ?? "",
+       collected_by:
+  data.collected_by && data.collected_by.trim() !== ""
+    ? data.collected_by
+    : currentUser?.username ?? "",
 
         status:
           data.status ?? "Pending",
@@ -75,115 +92,89 @@ export default function PaymentForm() {
   }
 
   async function handleSave() {
-    if (!form.owner_name.trim()) {
-      return toast.error("Owner Name is required.");
-    }
-
-    // Owner name validation
-    if (!/^[a-zA-Z\s]+$/.test(form.owner_name)) {
-      return toast.error(
-        "Owner Name can contain alphabets and spaces only."
-      );
-    }
-
-    // Mobile number validation
-    if (!form.mobile_number) {
-      return toast.error("Mobile Number is required.");
-    }
-
-    if (!/^\d{10}$/.test(form.mobile_number)) {
-      return toast.error(
-        "Mobile Number must contain exactly 10 digits."
-      );
-    }
-
-    if (!form.family_members) {
-      return toast.error(
-        "Please enter number of family members."
-      );
-    }
-
-    if (!form.subscription_amount) {
-      return toast.error(
-        "Please enter subscription amount."
-      );
-    }
-
-    if (!form.payment_mode) {
-      return toast.error(
-        "Please select payment mode."
-      );
-    }
-
-    if (!form.collected_by.trim()) {
-      return toast.error(
-        "Please enter collector name."
-      );
-    }
-
-    // Collected By validation
-    if (!/^[a-zA-Z\s]+$/.test(form.collected_by)) {
-      return toast.error(
-        "Collector name can contain alphabets and spaces only."
-      );
-    }
-
-    // Payment must be marked as Paid
-    if (form.status !== "Paid") {
-      return toast.error(
-        "Please change Payment Status to Paid before collecting the subscription."
-      );
-    }
-
-    try {
-      setLoading(true);
-
-      await updatePayment(flat.flat_number, {
-        owner_name: form.owner_name.trim(),
-
-        mobile_number: form.mobile_number,
-
-        family_members: Number(
-          form.family_members
-        ),
-
-        subscription_amount: Number(
-          form.subscription_amount
-        ),
-
-        payment_mode: form.payment_mode,
-
-        receipt_number:
-          form.receipt_number,
-
-        transaction_id:
-          form.transaction_id,
-
-        collected_by:
-          form.collected_by.trim(),
-
-        status: form.status,
-      });
-
-      toast.success(
-        `₹${form.subscription_amount} collected successfully`
-      );
-
-      setFlat(form);
-
-      setFlatNumber("");
-
-      flatInputRef.current?.focus();
-    } catch (err) {
-      console.error(err);
-
-      toast.error("Failed to save payment.");
-    } finally {
-      setLoading(false);
-    }
+  if (!canEdit()) {
+    return toast.error(
+      "You can edit only subscriptions collected by you."
+    );
   }
 
-  return (
+  if (!form.owner_name.trim()) {
+    return toast.error("Owner Name is required.");
+  }
+
+  if (!/^[a-zA-Z\s]+$/.test(form.owner_name)) {
+    return toast.error(
+      "Owner Name can contain alphabets and spaces only."
+    );
+  }
+
+  if (!form.mobile_number) {
+    return toast.error("Mobile Number is required.");
+  }
+
+  if (!/^\d{10}$/.test(form.mobile_number)) {
+    return toast.error(
+      "Mobile Number must contain exactly 10 digits."
+    );
+  }
+
+  if (!form.family_members) {
+    return toast.error(
+      "Please enter number of family members."
+    );
+  }
+
+  if (!form.subscription_amount) {
+    return toast.error(
+      "Please enter subscription amount."
+    );
+  }
+
+  if (!form.payment_mode) {
+    return toast.error(
+      "Please select payment mode."
+    );
+  }
+
+  if (form.status !== "Paid") {
+    return toast.error(
+      "Please change Payment Status to Paid before collecting the subscription."
+    );
+  }
+
+  try {
+    setLoading(true);
+
+    await updatePayment(flat.flat_number, {
+      owner_name: form.owner_name.trim(),
+      mobile_number: form.mobile_number,
+      family_members: Number(form.family_members),
+      subscription_amount: Number(form.subscription_amount),
+      payment_mode: form.payment_mode,
+      receipt_number: form.receipt_number,
+      transaction_id: form.transaction_id,
+      collected_by: form.collected_by,
+      status: form.status,
+    });
+
+    toast.success(
+      `₹${form.subscription_amount} collected successfully`
+    );
+
+    setFlat(form);
+    setFlatNumber("");
+    flatInputRef.current?.focus();
+  } catch (err: any) {
+    console.error(err);
+
+    toast.error(
+      err.message || "Failed to save payment."
+    );
+  } finally {
+    setLoading(false);
+  }
+}
+    return (
     <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
 
       {/* Header */}
@@ -243,8 +234,6 @@ export default function PaymentForm() {
 
         </div>
 
-        {/* Flat Details */}
-
         {flat && form && (
 
           <div className="mt-8">
@@ -291,8 +280,6 @@ export default function PaymentForm() {
 
             </div>
 
-            {/* Form Fields */}
-
             <div className="grid lg:grid-cols-2 gap-6">
 
               {/* Owner Name */}
@@ -305,7 +292,8 @@ export default function PaymentForm() {
 
                 <input
                   type="text"
-                  className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none"
+                  disabled={!canEdit()}
+                  className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
                   placeholder="Enter owner name"
                   value={form.owner_name}
                   onChange={(e) =>
@@ -335,7 +323,8 @@ export default function PaymentForm() {
                   inputMode="numeric"
                   maxLength={10}
                   pattern="[0-9]{10}"
-                  className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none"
+                  disabled={!canEdit()}
+                  className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
                   placeholder="Enter 10 digit mobile number"
                   value={form.mobile_number}
                   onChange={(e) =>
@@ -362,7 +351,8 @@ export default function PaymentForm() {
                 <input
                   type="number"
                   min="1"
-                  className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none"
+                  disabled={!canEdit()}
+                  className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
                   placeholder="Enter number of family members"
                   value={form.family_members}
                   onChange={(e) =>
@@ -387,7 +377,8 @@ export default function PaymentForm() {
                 <input
                   type="number"
                   min="0"
-                  className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none"
+                  disabled={!canEdit()}
+                  className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
                   placeholder="Enter subscription amount"
                   value={form.subscription_amount}
                   onChange={(e) =>
@@ -410,7 +401,8 @@ export default function PaymentForm() {
                 </label>
 
                 <select
-                  className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none"
+                  disabled={!canEdit()}
+                  className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
                   value={form.payment_mode}
                   onChange={(e) =>
                     setForm({
@@ -420,7 +412,6 @@ export default function PaymentForm() {
                     })
                   }
                 >
-
                   <option value="">
                     Select Payment Mode
                   </option>
@@ -440,8 +431,7 @@ export default function PaymentForm() {
                 </select>
 
               </div>
-
-              {/* Receipt Number */}
+                            {/* Receipt Number */}
 
               <div>
 
@@ -450,14 +440,14 @@ export default function PaymentForm() {
                 </label>
 
                 <input
-                  className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none"
+                  disabled={!canEdit()}
+                  className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
                   placeholder="Enter receipt number"
                   value={form.receipt_number}
                   onChange={(e) =>
                     setForm({
                       ...form,
-                      receipt_number:
-                        e.target.value,
+                      receipt_number: e.target.value,
                     })
                   }
                 />
@@ -473,14 +463,14 @@ export default function PaymentForm() {
                 </label>
 
                 <input
-                  className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none"
+                  disabled={!canEdit()}
+                  className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
                   placeholder="UPI / Bank Transaction ID"
                   value={form.transaction_id}
                   onChange={(e) =>
                     setForm({
                       ...form,
-                      transaction_id:
-                        e.target.value,
+                      transaction_id: e.target.value,
                     })
                   }
                 />
@@ -492,25 +482,16 @@ export default function PaymentForm() {
               <div>
 
                 <label className="block font-semibold mb-2">
-                  Collected By *
+                  Collected By
                 </label>
 
                 <input
-                  type="text"
-                  className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none"
-                  placeholder="Volunteer name"
-                  value={form.collected_by}
-                  onChange={(e) =>
-                    setForm({
-                      ...form,
-                      collected_by:
-                        e.target.value.replace(
-                          /[^a-zA-Z\s]/g,
-                          ""
-                        ),
-                    })
-                  }
-                />
+  type="text"
+  readOnly
+  disabled
+  value={form.collected_by || currentUser?.username || ""}
+  className="w-full border rounded-lg p-3 bg-gray-100 text-gray-700 cursor-not-allowed"
+/>
 
               </div>
 
@@ -523,7 +504,8 @@ export default function PaymentForm() {
                 </label>
 
                 <select
-                  className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none"
+                  disabled={!canEdit()}
+                  className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
                   value={form.status}
                   onChange={(e) =>
                     setForm({
@@ -547,25 +529,52 @@ export default function PaymentForm() {
 
             </div>
 
+            {/* Permission Warning */}
+
+            {!canEdit() && (
+
+              <div className="mt-6 bg-yellow-50 border border-yellow-300 rounded-lg p-4">
+
+                <p className="text-yellow-800 font-semibold">
+                  This subscription was collected by{" "}
+                  <strong>{form.collected_by}</strong>.
+                </p>
+
+                <p className="text-sm text-yellow-700 mt-1">
+                  Only the original collector or the Admin can edit this record.
+                </p>
+
+              </div>
+
+            )}
+
             {/* Collect Button */}
 
             <div className="mt-10">
-
+ 
               <button
-                onClick={handleSave}
+                 onClick={
+    handleSave
+  }
                 disabled={
                   loading ||
-                  form.status !== "Paid"
+                  form.status !== "Paid" ||
+                  !canEdit()
                 }
                 className={`w-full text-lg font-bold py-4 rounded-xl shadow-lg transition-all ${
-                  form.status === "Paid" &&
-                  !loading
+                  loading
+                    ? "bg-gray-400 text-white"
+                    : !canEdit()
+                    ? "bg-gray-400 text-gray-200 cursor-not-allowed"
+                    : form.status === "Paid"
                     ? "bg-green-600 hover:bg-green-700 text-white"
                     : "bg-gray-400 text-gray-200 cursor-not-allowed"
                 }`}
               >
                 {loading
                   ? "Saving Payment..."
+                  : !canEdit()
+                  ? "🔒 Not Your Collection"
                   : form.status === "Paid"
                   ? "💰 Collect Subscription"
                   : "🔒 Select Paid to Collect"}

@@ -22,71 +22,245 @@ export async function updatePayment(
     throw new Error("User not logged in.");
   }
 
-  // Fetch existing flat
-  const { data: existingFlat, error: fetchError } = await supabase
+  const ownerName = values.owner_name.trim();
+  const mobileNumber = values.mobile_number.trim();
+  const paymentMode = values.payment_mode.trim();
+
+  const allMandatoryFieldsEmpty =
+    ownerName === "" &&
+    mobileNumber === "" &&
+    values.family_members === 0 &&
+    values.subscription_amount === 0 &&
+    paymentMode === "";
+
+  const allMandatoryFieldsFilled =
+    ownerName !== "" &&
+    mobileNumber !== "" &&
+    values.family_members > 0 &&
+    values.subscription_amount > 0 &&
+    paymentMode !== "";
+
+  const resettingToPending =
+    values.status === "Pending" &&
+    allMandatoryFieldsEmpty;
+
+  // Prevent partially completed Pending records
+  if (
+    values.status === "Pending" &&
+    !resettingToPending
+  ) {
+    throw new Error(
+      "To reset a subscription you must clear ALL mandatory fields."
+    );
+  }
+
+  // Prevent incomplete Paid records
+  if (
+    values.status === "Paid" &&
+    !allMandatoryFieldsFilled
+  ) {
+    throw new Error(
+      "All mandatory fields are required for a Paid subscription."
+    );
+  }
+
+  if (
+    values.status === "Paid" &&
+    !/^[a-zA-Z\s]+$/.test(ownerName)
+  ) {
+    throw new Error(
+      "Owner Name can contain alphabets and spaces only."
+    );
+  }
+
+  if (
+    values.status === "Paid" &&
+    !/^\d{10}$/.test(mobileNumber)
+  ) {
+    throw new Error(
+      "Mobile Number must contain exactly 10 digits."
+    );
+  }
+
+  // Read the latest database state before updating
+  const {
+    data: existingFlat,
+    error: fetchError,
+  } = await supabase
     .from("flats")
     .select("status, collected_by")
     .eq("flat_number", flatNumber)
     .single();
 
-  if (fetchError) throw fetchError;
+  if (fetchError) {
+    throw fetchError;
+  }
 
-  // Permission check
+  if (!existingFlat) {
+    throw new Error("Flat not found.");
+  }
+
+  const existingCollector =
+    existingFlat.collected_by?.trim() || "";
+
+  const isAdmin =
+    user.role === "Admin";
+
+  const isNewCollection =
+    existingFlat.status === "Pending" &&
+    values.status === "Paid";
+
+  const isPaidRecord =
+    existingFlat.status === "Paid";
+
+  // Paid records can only be edited or reset
+  // by their collector or an Admin
   if (
-    user.role !== "Admin" &&
-    existingFlat?.collected_by &&
-    existingFlat.collected_by !== user.username
+    isPaidRecord &&
+    !isAdmin &&
+    existingCollector !== user.username
   ) {
     throw new Error(
       "You are not allowed to edit this subscription."
     );
   }
 
-  // Preserve original collector
-  const collectedBy =
-    existingFlat?.collected_by &&
-    existingFlat.collected_by.trim() !== ""
-      ? existingFlat.collected_by
-      : user.username;
+  let collectedBy = existingCollector;
 
-  // Determine activity
-  const action =
-    existingFlat?.status === "Paid"
-      ? "UPDATED SUBSCRIPTION"
-      : "COLLECTED SUBSCRIPTION";
+  if (resettingToPending) {
+    collectedBy = "";
+  } else if (isNewCollection) {
+    collectedBy = user.username;
+  } else if (!collectedBy) {
+    collectedBy = user.username;
+  }
 
-  const { error } = await supabase
+  const payload = resettingToPending
+    ? {
+        owner_name: "",
+        mobile_number: "",
+        family_members: 0,
+        subscription_amount: 0,
+        payment_mode: "",
+        receipt_number: "",
+        transaction_id: "",
+        remarks: "",
+        status: "Pending",
+
+        collected_by: "",
+        created_by: null,
+
+        payment_date: null,
+
+        last_updated_by: user.username,
+        updated_by: user.username,
+        updated_at: new Date().toISOString(),
+      }
+    : {
+        owner_name: ownerName,
+        mobile_number: mobileNumber,
+        family_members:
+          values.family_members,
+        subscription_amount:
+          values.subscription_amount,
+        payment_mode: paymentMode,
+        receipt_number:
+          values.receipt_number.trim(),
+        transaction_id:
+          values.transaction_id.trim(),
+
+        status: "Paid",
+
+        collected_by: collectedBy,
+        created_by:
+          existingCollector || user.username,
+
+        payment_date:
+          isNewCollection
+            ? new Date()
+                .toISOString()
+                .split("T")[0]
+            : undefined,
+
+        last_updated_by: user.username,
+        updated_by: user.username,
+        updated_at: new Date().toISOString(),
+      };
+
+  let updateQuery = supabase
     .from("flats")
-    .update({
-      owner_name: values.owner_name,
-      mobile_number: values.mobile_number,
-      family_members: values.family_members,
-      subscription_amount: values.subscription_amount,
-      payment_mode: values.payment_mode,
-      receipt_number: values.receipt_number,
-      transaction_id: values.transaction_id,
-      status: values.status,
-
-      collected_by: collectedBy,
-      created_by: collectedBy,
-      updated_by: user.username,
-
-      payment_date: new Date()
-        .toISOString()
-        .split("T")[0],
-
-      updated_at: new Date().toISOString(),
-    })
+    .update(payload)
     .eq("flat_number", flatNumber);
 
+  /*
+   * Atomic protection for simultaneous collection:
+   * a new collection succeeds only while the row
+   * is still Pending and has no collector.
+   */
+  if (isNewCollection) {
+    updateQuery = updateQuery
+      .eq("status", "Pending")
+      .eq("collected_by", existingCollector);
+  }
+
+  /*
+   * Protect edits and resets against a record changing
+   * after the user loaded it.
+   */
+  if (isPaidRecord) {
+    updateQuery = updateQuery
+      .eq("status", "Paid")
+      .eq(
+        "collected_by",
+        existingCollector
+      );
+  }
+
+  const { data, error } =
+    await updateQuery.select();
+
   if (error) {
-    console.error(error);
+    console.error(
+      "Payment update error:",
+      error
+    );
     throw error;
   }
 
-  await addActivity(
-    flatNumber,
-    action,
-    `₹${values.subscription_amount} | ${values.payment_mode} | Updated by ${user.username}`
-  );
+  if (!data || data.length === 0) {
+    if (isNewCollection) {
+      throw new Error(
+        "This flat has already been collected by another volunteer. Please refresh and check the record."
+      );
+    }
+
+    throw new Error(
+      "This record was changed by another user. Please refresh and try again."
+    );
+  }
+
+  const action = resettingToPending
+    ? "RESET SUBSCRIPTION"
+    : isNewCollection
+    ? "COLLECTED SUBSCRIPTION"
+    : "UPDATED SUBSCRIPTION";
+
+  const description = resettingToPending
+    ? `Subscription reset by ${user.username}`
+    : `₹${values.subscription_amount} | ${values.payment_mode} | Updated by ${user.username}`;
+
+  try {
+    await addActivity(
+      flatNumber,
+      action,
+      description
+    );
+  } catch (err) {
+    console.warn(
+      "Activity log failed",
+      err
+    );
+  }
+
+  return data;
 }

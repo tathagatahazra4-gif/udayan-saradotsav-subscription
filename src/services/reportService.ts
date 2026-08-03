@@ -7,10 +7,12 @@ export async function getReportData() {
   let query = supabase
     .from("flats")
     .select("*")
-    .order("flat_number", { ascending: true });
+    .order("flat_number", {
+      ascending: true,
+    });
 
-  // Volunteers can see only their own collections.
-  // Admin can see everything.
+  // Volunteers see only their own collections.
+  // Admin sees everything on the Reports page.
   if (user?.role !== "Admin") {
     query = query.eq(
       "collected_by",
@@ -20,9 +22,60 @@ export async function getReportData() {
 
   const { data, error } = await query;
 
-  if (error) throw error;
+  if (error) {
+    throw error;
+  }
 
   return data ?? [];
+}
+
+export async function getMyCollections() {
+  const user = getLoggedInUser();
+
+  if (!user) {
+    throw new Error("User not logged in.");
+  }
+
+  // Admin and volunteers both see only their own
+  // collections on the My Collections page.
+  const { data, error } = await supabase
+    .from("flats")
+    .select("*")
+    .eq("collected_by", user.username)
+    .eq("status", "Paid")
+    .order("payment_date", {
+      ascending: false,
+    })
+    .order("flat_number", {
+      ascending: true,
+    });
+
+  if (error) {
+    console.error(
+      "My Collections Error:",
+      error
+    );
+
+    throw error;
+  }
+
+  const collections = data ?? [];
+
+  const totalCollection = collections.reduce(
+    (sum, flat) =>
+      sum +
+      Number(
+        flat.subscription_amount || 0
+      ),
+    0
+  );
+
+  return {
+    username: user.username,
+    collections,
+    totalFlats: collections.length,
+    totalCollection,
+  };
 }
 
 export async function getVolunteerCollectionReport() {
@@ -32,7 +85,9 @@ export async function getVolunteerCollectionReport() {
       "collected_by, subscription_amount, status"
     );
 
-  if (error) throw error;
+  if (error) {
+    throw error;
+  }
 
   const summary: Record<
     string,
@@ -47,8 +102,9 @@ export async function getVolunteerCollectionReport() {
     if (
       row.status !== "Paid" ||
       !row.collected_by
-    )
+    ) {
       return;
+    }
 
     const volunteer = row.collected_by;
 

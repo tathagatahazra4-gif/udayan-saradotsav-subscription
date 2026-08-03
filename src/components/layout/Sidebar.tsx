@@ -14,6 +14,7 @@ import {
   FaSignOutAlt,
   FaFileImport,
   FaTimes,
+  FaClipboardList,
 } from "react-icons/fa";
 
 interface SidebarProps {
@@ -31,6 +32,11 @@ const menu = [
     name: "Quick Collection",
     href: "/collection",
     icon: FaMoneyBill,
+  },
+  {
+    name: "My Collections",
+    href: "/my-collections",
+    icon: FaClipboardList,
   },
   {
     name: "Buildings",

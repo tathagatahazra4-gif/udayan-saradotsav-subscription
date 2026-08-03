@@ -15,13 +15,16 @@ export default function ProtectedRoute({
   const router = useRouter();
 
   useEffect(() => {
-    // Check custom committee login
-    const committeeUser = getLoggedInUser();
+  console.log("ProtectedRoute", {
+    loading,
+    user,
+    localStorage: localStorage.getItem("committeeUser"),
+  });
 
-    if (!loading && (!user || !committeeUser)) {
-      router.replace("/login");
-    }
-  }, [loading, user, router]);
+  if (!loading && !user) {
+    router.replace("/login");
+  }
+}, [loading, user, router]);
 
   if (loading) {
     return (

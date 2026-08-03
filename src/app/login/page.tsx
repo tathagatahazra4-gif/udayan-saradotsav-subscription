@@ -5,9 +5,12 @@ import { useRouter } from "next/navigation";
 
 import { login } from "@/services/authService";
 import { logLogin } from "@/services/activityService";
+import { useAuth } from "@/components/providers/AuthProvider";
 
 export default function LoginPage() {
   const router = useRouter();
+
+  const { refreshUser } = useAuth();
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -15,19 +18,39 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  async function handleLogin(e: React.FormEvent) {
+  async function handleLogin(
+    e: React.FormEvent
+  ) {
     e.preventDefault();
 
     setLoading(true);
     setError("");
 
     try {
-      await login(username.trim(), password);
+      console.log("Calling login...");
 
-      await logLogin(username.trim());
+      const user = await login(
+        username.trim(),
+        password
+      );
+
+      console.log("Login success:", user);
+
+      await logLogin(user.username);
+
+      console.log("Activity logged");
+
+      refreshUser();
+
+      // allow React context to update
+      await new Promise((resolve) =>
+        setTimeout(resolve, 50)
+      );
 
       router.replace("/dashboard");
     } catch (err: any) {
+      console.error(err);
+
       setError(err.message);
     } finally {
       setLoading(false);
@@ -36,9 +59,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
-
       <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
-
         <h1 className="text-3xl font-bold text-center text-blue-900">
           UDAYAN SARADOTSAV SAMITY
         </h1>
@@ -51,7 +72,6 @@ export default function LoginPage() {
           onSubmit={handleLogin}
           className="space-y-5"
         >
-
           <input
             type="text"
             placeholder="Username"
@@ -87,11 +107,8 @@ export default function LoginPage() {
               ? "Logging in..."
               : "Login"}
           </button>
-
         </form>
-
       </div>
-
     </div>
   );
 }

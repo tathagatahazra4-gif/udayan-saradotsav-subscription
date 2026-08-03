@@ -1,28 +1,11 @@
-import { supabase } from "@/supabase/client";
+import { getLoggedInUser } from "@/services/authService";
 
 export async function getCurrentProfile() {
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError) throw authError;
-
-  if (!user) return null;
-
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
-
-  if (error) throw error;
-
-  return data;
+  return getLoggedInUser();
 }
 
 export async function getCurrentUserName() {
-  const profile = await getCurrentProfile();
+  const user = getLoggedInUser();
 
-  return profile?.full_name ?? "Unknown User";
+  return user?.username ?? "Unknown User";
 }

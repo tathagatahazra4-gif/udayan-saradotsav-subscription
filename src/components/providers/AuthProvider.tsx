@@ -1,17 +1,24 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
 import { getLoggedInUser } from "@/services/authService";
 
 interface AuthContextType {
   user: any;
   loading: boolean;
+  refreshUser: () => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
+  refreshUser: () => {},
 });
 
 export function AuthProvider({
@@ -22,11 +29,16 @@ export function AuthProvider({
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const refreshUser = () => {
     const loggedInUser = getLoggedInUser();
 
-    setUser(loggedInUser);
+    console.log("Refreshing user:", loggedInUser);
 
+    setUser(loggedInUser);
+  };
+
+  useEffect(() => {
+    refreshUser();
     setLoading(false);
   }, []);
 
@@ -35,6 +47,7 @@ export function AuthProvider({
       value={{
         user,
         loading,
+        refreshUser,
       }}
     >
       {children}
