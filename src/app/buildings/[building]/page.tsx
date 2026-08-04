@@ -182,7 +182,7 @@ export default function BuildingDetailsPage() {
             />
 
             <select
-              className="border rounded-lg p-3 w-48"
+              className="border rounded-lg p-3 w-full md:w-48"
               value={status}
               onChange={(e) =>
                 setStatus(e.target.value)
@@ -195,9 +195,9 @@ export default function BuildingDetailsPage() {
 
           </div>
 
-          <div className="bg-white rounded-xl shadow overflow-hidden">
+          <div className="bg-white rounded-xl shadow overflow-x-auto">
 
-            <table className="min-w-full">
+            <table className="min-w-[850px] w-full">
 
               <thead className="bg-blue-900 text-white">
 
@@ -231,9 +231,7 @@ export default function BuildingDetailsPage() {
 
               </thead>
 
-              <tbody>
-
-                {filteredFlats.map((flat) => (
+              <tbody>                {filteredFlats.map((flat) => (
 
                   <tr
                     key={flat.flat_number}

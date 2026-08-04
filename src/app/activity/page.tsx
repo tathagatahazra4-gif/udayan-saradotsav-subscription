@@ -47,48 +47,76 @@ export default function ActivityPage() {
             Activity History
           </h1>
 
-          <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="bg-white rounded-lg shadow overflow-x-auto">
 
-            <table className="min-w-full">
+            <table className="min-w-[750px] w-full">
 
               <thead className="bg-gray-100">
 
                 <tr>
-                  <th className="p-3 text-left">Time</th>
-                  <th className="p-3 text-left">Flat</th>
-                  <th className="p-3 text-left">Action</th>
-                  <th className="p-3 text-left">Performed By</th>
+                  <th className="p-3 text-left whitespace-nowrap">
+                    Time
+                  </th>
+
+                  <th className="p-3 text-left whitespace-nowrap">
+                    Flat
+                  </th>
+
+                  <th className="p-3 text-left whitespace-nowrap">
+                    Action
+                  </th>
+
+                  <th className="p-3 text-left whitespace-nowrap">
+                    Performed By
+                  </th>
                 </tr>
 
               </thead>
 
               <tbody>
 
-                {activities.map((item) => (
+                {activities.length === 0 ? (
 
-                  <tr
-                    key={item.id}
-                    className="border-t"
-                  >
-                    <td className="p-3">
-                      {new Date(item.created_at).toLocaleString()}
+                  <tr>
+                    <td
+                      colSpan={4}
+                      className="text-center py-10 text-gray-500"
+                    >
+                      No activity found.
                     </td>
-
-                    <td className="p-3 font-semibold">
-                      {item.flat_number}
-                    </td>
-
-                    <td className="p-3">
-                      {item.action}
-                    </td>
-
-                    <td className="p-3">
-                      {item.performed_by}
-                    </td>
-
                   </tr>
 
-                ))}
+                ) : (
+
+                  activities.map((item) => (
+
+                    <tr
+                      key={item.id}
+                      className="border-t hover:bg-gray-50"
+                    >
+                      <td className="p-3 whitespace-nowrap">
+                        {new Date(
+                          item.created_at
+                        ).toLocaleString()}
+                      </td>
+
+                      <td className="p-3 font-semibold whitespace-nowrap">
+                        {item.flat_number || "-"}
+                      </td>
+
+                      <td className="p-3 whitespace-nowrap">
+                        {item.action || "-"}
+                      </td>
+
+                      <td className="p-3 whitespace-nowrap">
+                        {item.performed_by || "-"}
+                      </td>
+
+                    </tr>
+
+                  ))
+
+                )}
 
               </tbody>
 
