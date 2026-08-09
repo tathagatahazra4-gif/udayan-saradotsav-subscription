@@ -126,6 +126,9 @@ export default function BuildingDetailsPage() {
           .includes(search.toLowerCase()) ||
         flat.mobile_number
           ?.toLowerCase()
+          .includes(search.toLowerCase()) ||
+        flat.comments
+          ?.toLowerCase()
           .includes(search.toLowerCase());
 
       const matchesStatus =
@@ -385,7 +388,7 @@ export default function BuildingDetailsPage() {
 
             <input
               type="text"
-              placeholder="Search Flat / Owner / Mobile"
+              placeholder="Search Flat / Owner / Mobile / Comments"
               className="border rounded-lg p-3 flex-1"
               value={search}
               onChange={(e) =>
@@ -423,7 +426,7 @@ export default function BuildingDetailsPage() {
 
           <div className="bg-white rounded-xl shadow overflow-x-auto">
 
-            <table className="min-w-[850px] w-full">
+            <table className="min-w-[1150px] w-full">
 
               <thead className="bg-blue-900 text-white">
 
@@ -453,6 +456,10 @@ export default function BuildingDetailsPage() {
                     Action
                   </th>
 
+                  <th className="p-4 text-left min-w-[280px]">
+                    Comments
+                  </th>
+
                 </tr>
 
               </thead>
@@ -469,7 +476,7 @@ export default function BuildingDetailsPage() {
                       className="border-t hover:bg-gray-50"
                     >
 
-                      <td className="p-4 font-semibold">
+                      <td className="p-4 font-semibold whitespace-nowrap">
                         {
                           flat.flat_number
                         }
@@ -480,7 +487,7 @@ export default function BuildingDetailsPage() {
                           "-"}
                       </td>
 
-                      <td className="p-4">
+                      <td className="p-4 whitespace-nowrap">
                         {flat.mobile_number ||
                           "-"}
                       </td>
@@ -502,14 +509,14 @@ export default function BuildingDetailsPage() {
 
                       </td>
 
-                      <td className="p-4 text-center">
+                      <td className="p-4 text-center whitespace-nowrap">
                         ₹
                         {
                           flat.subscription_amount
                         }
                       </td>
 
-                      <td className="p-4 text-center">
+                      <td className="p-4 text-center whitespace-nowrap">
 
                         <Link
                           href={`/flats/${flat.flat_number}`}
@@ -518,6 +525,12 @@ export default function BuildingDetailsPage() {
                           Edit
                         </Link>
 
+                      </td>
+
+                      <td className="p-4 min-w-[280px] whitespace-normal align-top text-gray-700">
+                        {flat.comments?.trim()
+                          ? flat.comments
+                          : "-"}
                       </td>
 
                     </tr>
@@ -529,7 +542,7 @@ export default function BuildingDetailsPage() {
                   0 && (
                   <tr>
                     <td
-                      colSpan={6}
+                      colSpan={7}
                       className="text-center p-8 text-gray-500"
                     >
                       No flats found.
