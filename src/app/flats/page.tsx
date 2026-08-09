@@ -36,7 +36,12 @@ export default function FlatsPage() {
       (flat.owner_name || "")
         .toLowerCase()
         .includes(keyword) ||
-      (flat.mobile_number || "").includes(keyword)
+      (flat.mobile_number || "")
+        .toLowerCase()
+        .includes(keyword) ||
+      (flat.comments || "")
+        .toLowerCase()
+        .includes(keyword)
     );
   });
 
@@ -64,7 +69,6 @@ export default function FlatsPage() {
           <div className="flex flex-col lg:flex-row justify-between lg:items-center gap-5">
 
             <div>
-
               <h1 className="text-4xl font-bold text-blue-900">
                 Flats Management
               </h1>
@@ -72,14 +76,15 @@ export default function FlatsPage() {
               <p className="text-gray-500 mt-2">
                 View and manage all flats in the society.
               </p>
-
             </div>
 
             <input
               type="text"
-              placeholder="Search Flat / Owner / Mobile..."
+              placeholder="Search Flat / Owner / Mobile / Comments..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) =>
+                setSearch(e.target.value)
+              }
               className="border rounded-lg px-4 py-3 w-full lg:w-96 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
 
@@ -92,7 +97,6 @@ export default function FlatsPage() {
             <div className="flex justify-between items-center">
 
               <div>
-
                 <p className="text-gray-500">
                   Total Flats
                 </p>
@@ -100,11 +104,9 @@ export default function FlatsPage() {
                 <h2 className="text-3xl font-bold text-blue-900">
                   {filteredFlats.length}
                 </h2>
-
               </div>
 
               <div className="text-right">
-
                 <p className="text-gray-500">
                   Showing Results
                 </p>
@@ -112,7 +114,6 @@ export default function FlatsPage() {
                 <h2 className="text-xl font-semibold">
                   {filteredFlats.length}
                 </h2>
-
               </div>
 
             </div>
@@ -123,7 +124,7 @@ export default function FlatsPage() {
 
           <div className="overflow-x-auto bg-white rounded-2xl shadow-lg border">
 
-            <table className="min-w-full">
+            <table className="min-w-[1250px] w-full">
 
               <thead className="bg-blue-900 text-white sticky top-0">
 
@@ -157,6 +158,10 @@ export default function FlatsPage() {
                     Action
                   </th>
 
+                  <th className="p-4 text-left min-w-[280px]">
+                    Comments
+                  </th>
+
                 </tr>
 
               </thead>
@@ -168,7 +173,7 @@ export default function FlatsPage() {
                   <tr>
 
                     <td
-                      colSpan={7}
+                      colSpan={8}
                       className="text-center py-12 text-gray-500"
                     >
                       No flats found.
@@ -185,7 +190,7 @@ export default function FlatsPage() {
                       className="border-b hover:bg-blue-50 transition"
                     >
 
-                      <td className="p-4 font-semibold">
+                      <td className="p-4 font-semibold whitespace-nowrap">
                         {flat.flat_number}
                       </td>
 
@@ -193,7 +198,7 @@ export default function FlatsPage() {
                         {flat.owner_name || "-"}
                       </td>
 
-                      <td className="p-4">
+                      <td className="p-4 whitespace-nowrap">
                         {flat.mobile_number || "-"}
                       </td>
 
@@ -201,7 +206,7 @@ export default function FlatsPage() {
                         {flat.family_members}
                       </td>
 
-                      <td className="p-4 text-center font-semibold">
+                      <td className="p-4 text-center font-semibold whitespace-nowrap">
                         ₹{flat.subscription_amount}
                       </td>
 
@@ -219,7 +224,7 @@ export default function FlatsPage() {
 
                       </td>
 
-                      <td className="p-4 text-center">
+                      <td className="p-4 text-center whitespace-nowrap">
 
                         <Link
                           href={`/flats/${flat.flat_number}`}
@@ -227,6 +232,14 @@ export default function FlatsPage() {
                         >
                           Edit
                         </Link>
+
+                      </td>
+
+                      <td className="p-4 min-w-[280px] whitespace-normal align-top text-gray-700">
+
+                        {flat.comments?.trim()
+                          ? flat.comments
+                          : "-"}
 
                       </td>
 

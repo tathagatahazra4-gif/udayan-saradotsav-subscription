@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import { searchFlat } from "@/services/flatsService";
 import { updatePayment } from "@/services/paymentService";
 import { getLoggedInUser } from "@/services/authService";
+import { saveFlatComment } from "@/services/flatCommentService";
 
 export default function PaymentForm() {
   const flatInputRef = useRef<HTMLInputElement>(null);
@@ -13,7 +14,9 @@ export default function PaymentForm() {
   const [flatNumber, setFlatNumber] = useState("");
   const [flat, setFlat] = useState<any>(null);
   const [form, setForm] = useState<any>(null);
+
   const [loading, setLoading] = useState(false);
+  const [savingComment, setSavingComment] = useState(false);
 
   const currentUser = getLoggedInUser();
 
@@ -29,6 +32,10 @@ export default function PaymentForm() {
     return form.collected_by === currentUser?.username;
   };
 
+  // =====================================================
+  // SEARCH FLAT
+  // =====================================================
+
   async function handleSearch() {
     if (!flatNumber.trim()) {
       toast.error("Please enter Flat Number.");
@@ -39,16 +46,20 @@ export default function PaymentForm() {
     try {
       setLoading(true);
 
-      const data = await searchFlat(flatNumber.trim());
+      const data = await searchFlat(
+        flatNumber.trim()
+      );
 
       setFlat(data);
 
       setForm({
         ...data,
 
-        owner_name: data.owner_name ?? "",
+        owner_name:
+          data.owner_name ?? "",
 
-        mobile_number: data.mobile_number ?? "",
+        mobile_number:
+          data.mobile_number ?? "",
 
         family_members:
           data.family_members === 0
@@ -67,15 +78,16 @@ export default function PaymentForm() {
           data.receipt_number ?? "",
 
         transaction_id:
-  data.transaction_id ?? "",
+          data.transaction_id ?? "",
 
-comments:
-  data.comments ?? "",
+        comments:
+          data.comments ?? "",
 
-collected_by:
-  data.collected_by && data.collected_by.trim() !== ""
-    ? data.collected_by
-    : currentUser?.username ?? "",
+        collected_by:
+          data.collected_by &&
+          data.collected_by.trim() !== ""
+            ? data.collected_by
+            : currentUser?.username ?? "",
 
         status:
           data.status ?? "Pending",
@@ -94,94 +106,194 @@ collected_by:
     }
   }
 
+  // =====================================================
+  // SAVE COMMENT
+  //
+  // Any logged-in user can save/update comments.
+  // Payment ownership does NOT affect this.
+  // =====================================================
+
+  async function handleSaveComment() {
+    if (!flat || !form) {
+      return;
+    }
+
+    if (!currentUser) {
+      toast.error(
+        "You must be logged in to update comments."
+      );
+      return;
+    }
+
+    try {
+      setSavingComment(true);
+
+      const result =
+        await saveFlatComment(
+          flat.flat_number,
+          form.comments ?? ""
+        );
+
+      setForm((previousForm: any) => ({
+        ...previousForm,
+        comments:
+          result.comments ?? "",
+      }));
+
+      setFlat((previousFlat: any) => ({
+        ...previousFlat,
+        comments:
+          result.comments ?? "",
+      }));
+
+      toast.success(
+        "Comment saved successfully."
+      );
+    } catch (err: any) {
+      console.error(err);
+
+      toast.error(
+        err?.message ||
+          "Failed to save comment."
+      );
+    } finally {
+      setSavingComment(false);
+    }
+  }
+
+  // =====================================================
+  // SAVE PAYMENT
+  // =====================================================
+
   async function handleSave() {
-  if (!canEdit()) {
-    return toast.error(
-      "You can edit only subscriptions collected by you."
-    );
+    if (!canEdit()) {
+      return toast.error(
+        "You can edit only subscriptions collected by you."
+      );
+    }
+
+    if (!form.owner_name.trim()) {
+      return toast.error(
+        "Owner Name is required."
+      );
+    }
+
+    if (
+      !/^[a-zA-Z\s]+$/.test(
+        form.owner_name
+      )
+    ) {
+      return toast.error(
+        "Owner Name can contain alphabets and spaces only."
+      );
+    }
+
+    // Mobile Number is OPTIONAL.
+    // If entered, it must be exactly 10 digits.
+    if (
+      form.mobile_number &&
+      !/^\d{10}$/.test(
+        form.mobile_number
+      )
+    ) {
+      return toast.error(
+        "Mobile Number must contain exactly 10 digits."
+      );
+    }
+
+    if (!form.family_members) {
+      return toast.error(
+        "Please enter number of family members."
+      );
+    }
+
+    if (!form.subscription_amount) {
+      return toast.error(
+        "Please enter subscription amount."
+      );
+    }
+
+    if (!form.payment_mode) {
+      return toast.error(
+        "Please select payment mode."
+      );
+    }
+
+    if (form.status !== "Paid") {
+      return toast.error(
+        "Please change Payment Status to Paid before collecting the subscription."
+      );
+    }
+
+    try {
+      setLoading(true);
+
+      await updatePayment(
+        flat.flat_number,
+        {
+          owner_name:
+            form.owner_name.trim(),
+
+          mobile_number:
+            form.mobile_number,
+
+          family_members:
+            Number(
+              form.family_members
+            ),
+
+          subscription_amount:
+            Number(
+              form.subscription_amount
+            ),
+
+          payment_mode:
+            form.payment_mode,
+
+          receipt_number:
+            form.receipt_number,
+
+          transaction_id:
+            form.transaction_id,
+
+          comments:
+            form.comments ?? "",
+
+          collected_by:
+            form.collected_by,
+
+          status:
+            form.status,
+        }
+      );
+
+      toast.success(
+        `₹${form.subscription_amount} collected successfully`
+      );
+
+      setFlat(form);
+
+      setFlatNumber("");
+
+      flatInputRef.current?.focus();
+    } catch (err: any) {
+      console.error(err);
+
+      toast.error(
+        err?.message ||
+          "Failed to save payment."
+      );
+    } finally {
+      setLoading(false);
+    }
   }
 
-  if (!form.owner_name.trim()) {
-    return toast.error("Owner Name is required.");
-  }
-
-  if (!/^[a-zA-Z\s]+$/.test(form.owner_name)) {
-    return toast.error(
-      "Owner Name can contain alphabets and spaces only."
-    );
-  }
-
-  
-  if (
-  form.mobile_number &&
-  !/^\d{10}$/.test(form.mobile_number)
-) {
-  return toast.error(
-    "Mobile Number must contain exactly 10 digits."
-  );
-}
-
-  if (!form.family_members) {
-    return toast.error(
-      "Please enter number of family members."
-    );
-  }
-
-  if (!form.subscription_amount) {
-    return toast.error(
-      "Please enter subscription amount."
-    );
-  }
-
-  if (!form.payment_mode) {
-    return toast.error(
-      "Please select payment mode."
-    );
-  }
-
-  if (form.status !== "Paid") {
-    return toast.error(
-      "Please change Payment Status to Paid before collecting the subscription."
-    );
-  }
-
-  try {
-    setLoading(true);
-
-    await updatePayment(flat.flat_number, {
-  owner_name: form.owner_name.trim(),
-  mobile_number: form.mobile_number,
-  family_members: Number(form.family_members),
-  subscription_amount: Number(form.subscription_amount),
-  payment_mode: form.payment_mode,
-  receipt_number: form.receipt_number,
-  transaction_id: form.transaction_id,
-  comments: form.comments,
-  collected_by: form.collected_by,
-  status: form.status,
-});
-
-    toast.success(
-      `₹${form.subscription_amount} collected successfully`
-    );
-
-    setFlat(form);
-    setFlatNumber("");
-    flatInputRef.current?.focus();
-  } catch (err: any) {
-    console.error(err);
-
-    toast.error(
-      err.message || "Failed to save payment."
-    );
-  } finally {
-    setLoading(false);
-  }
-}
-    return (
+  return (
     <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
 
-      {/* Header */}
+      {/* =====================================================
+          HEADER
+      ===================================================== */}
 
       <div className="bg-linear-to-r from-blue-700 to-blue-900 px-8 py-6">
 
@@ -195,11 +307,13 @@ collected_by:
 
       </div>
 
-      <div className="p-8">
+      <div className="p-5 md:p-8">
 
-        {/* Search */}
+        {/* =====================================================
+            SEARCH
+        ===================================================== */}
 
-        <div className="bg-blue-50 border border-blue-100 rounded-xl p-6">
+        <div className="bg-blue-50 border border-blue-100 rounded-xl p-5 md:p-6">
 
           <label className="block font-semibold text-gray-700 mb-2">
             Flat Number
@@ -216,7 +330,9 @@ collected_by:
                 )
               }
               onKeyDown={(e) => {
-                if (e.key === "Enter") {
+                if (
+                  e.key === "Enter"
+                ) {
                   handleSearch();
                 }
               }}
@@ -225,6 +341,7 @@ collected_by:
             />
 
             <button
+              type="button"
               onClick={handleSearch}
               disabled={loading}
               className="bg-blue-700 hover:bg-blue-800 text-white px-8 py-3 rounded-lg font-semibold disabled:bg-gray-400"
@@ -241,6 +358,66 @@ collected_by:
         {flat && form && (
 
           <div className="mt-8">
+
+            {/* =====================================================
+                FLAT COMMENTS
+                Always editable by any logged-in user
+            ===================================================== */}
+
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-5 mb-8">
+
+              <div className="mb-4">
+
+                <h3 className="text-xl font-bold text-blue-900">
+                  Flat Comments
+                </h3>
+
+                <p className="text-sm text-gray-500 mt-1">
+                  Any logged-in user can add or update notes for this flat.
+                </p>
+
+              </div>
+
+              <textarea
+                rows={4}
+                value={
+                  form.comments ?? ""
+                }
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    comments:
+                      e.target.value,
+                  })
+                }
+                placeholder="Example: Flat locked, owner unavailable, revisit after 6 PM..."
+                className="w-full border rounded-lg p-3 bg-white resize-y focus:ring-2 focus:ring-blue-500 outline-none"
+              />
+
+              <div className="flex justify-end mt-3">
+
+                <button
+                  type="button"
+                  onClick={
+                    handleSaveComment
+                  }
+                  disabled={
+                    savingComment
+                  }
+                  className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-5 py-2 rounded-lg font-semibold transition"
+                >
+                  {savingComment
+                    ? "Saving..."
+                    : "Save Comment"}
+                </button>
+
+              </div>
+
+            </div>
+
+            {/* =====================================================
+                FLAT DETAILS
+            ===================================================== */}
 
             <div className="bg-gray-50 border rounded-xl p-5 mb-8">
 
@@ -270,7 +447,8 @@ collected_by:
 
                   <span
                     className={`inline-flex px-4 py-2 rounded-full text-white font-semibold ${
-                      form.status === "Paid"
+                      form.status ===
+                      "Paid"
                         ? "bg-green-600"
                         : "bg-red-600"
                     }`}
@@ -284,6 +462,10 @@ collected_by:
 
             </div>
 
+            {/* =====================================================
+                PAYMENT FORM
+            ===================================================== */}
+
             <div className="grid lg:grid-cols-2 gap-6">
 
               {/* Owner Name */}
@@ -296,13 +478,18 @@ collected_by:
 
                 <input
                   type="text"
-                  disabled={!canEdit()}
+                  disabled={
+                    !canEdit()
+                  }
                   className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
                   placeholder="Enter owner name"
-                  value={form.owner_name}
+                  value={
+                    form.owner_name
+                  }
                   onChange={(e) =>
                     setForm({
                       ...form,
+
                       owner_name:
                         e.target.value.replace(
                           /[^a-zA-Z\s]/g,
@@ -319,28 +506,41 @@ collected_by:
               <div>
 
                 <label className="block font-semibold mb-2">
-  Mobile Number
-  <span className="text-gray-400 font-normal">
-    {" "}(Optional)
-  </span>
-</label>
+                  Mobile Number
+
+                  <span className="text-gray-400 font-normal">
+                    {" "}
+                    (Optional)
+                  </span>
+                </label>
 
                 <input
                   type="tel"
                   inputMode="numeric"
                   maxLength={10}
                   pattern="[0-9]{10}"
-                  disabled={!canEdit()}
+                  disabled={
+                    !canEdit()
+                  }
                   className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
                   placeholder="Enter 10 digit mobile number"
-                  value={form.mobile_number}
+                  value={
+                    form.mobile_number
+                  }
                   onChange={(e) =>
                     setForm({
                       ...form,
+
                       mobile_number:
                         e.target.value
-                          .replace(/\D/g, "")
-                          .slice(0, 10),
+                          .replace(
+                            /\D/g,
+                            ""
+                          )
+                          .slice(
+                            0,
+                            10
+                          ),
                     })
                   }
                 />
@@ -358,13 +558,18 @@ collected_by:
                 <input
                   type="number"
                   min="1"
-                  disabled={!canEdit()}
+                  disabled={
+                    !canEdit()
+                  }
                   className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
                   placeholder="Enter number of family members"
-                  value={form.family_members}
+                  value={
+                    form.family_members
+                  }
                   onChange={(e) =>
                     setForm({
                       ...form,
+
                       family_members:
                         e.target.value,
                     })
@@ -384,13 +589,18 @@ collected_by:
                 <input
                   type="number"
                   min="0"
-                  disabled={!canEdit()}
+                  disabled={
+                    !canEdit()
+                  }
                   className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
                   placeholder="Enter subscription amount"
-                  value={form.subscription_amount}
+                  value={
+                    form.subscription_amount
+                  }
                   onChange={(e) =>
                     setForm({
                       ...form,
+
                       subscription_amount:
                         e.target.value,
                     })
@@ -408,17 +618,23 @@ collected_by:
                 </label>
 
                 <select
-                  disabled={!canEdit()}
+                  disabled={
+                    !canEdit()
+                  }
                   className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
-                  value={form.payment_mode}
+                  value={
+                    form.payment_mode
+                  }
                   onChange={(e) =>
                     setForm({
                       ...form,
+
                       payment_mode:
                         e.target.value,
                     })
                   }
                 >
+
                   <option value="">
                     Select Payment Mode
                   </option>
@@ -438,7 +654,8 @@ collected_by:
                 </select>
 
               </div>
-                            {/* Receipt Number */}
+
+              {/* Receipt Number */}
 
               <div>
 
@@ -447,14 +664,20 @@ collected_by:
                 </label>
 
                 <input
-                  disabled={!canEdit()}
+                  disabled={
+                    !canEdit()
+                  }
                   className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
                   placeholder="Enter receipt number"
-                  value={form.receipt_number}
+                  value={
+                    form.receipt_number
+                  }
                   onChange={(e) =>
                     setForm({
                       ...form,
-                      receipt_number: e.target.value,
+
+                      receipt_number:
+                        e.target.value,
                     })
                   }
                 />
@@ -470,45 +693,25 @@ collected_by:
                 </label>
 
                 <input
-                  disabled={!canEdit()}
+                  disabled={
+                    !canEdit()
+                  }
                   className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
                   placeholder="UPI / Bank Transaction ID"
-                  value={form.transaction_id}
+                  value={
+                    form.transaction_id
+                  }
                   onChange={(e) =>
                     setForm({
                       ...form,
-                      transaction_id: e.target.value,
+
+                      transaction_id:
+                        e.target.value,
                     })
                   }
                 />
 
               </div>
-              {/* Comments */}
-
-<div className="lg:col-span-2">
-
-  <label className="block font-semibold mb-2">
-    Comments
-    <span className="text-gray-400 font-normal">
-      {" "}(Optional)
-    </span>
-  </label>
-
-  <textarea
-    rows={4}
-    disabled={!canEdit()}
-    value={form.comments ?? ""}
-    onChange={(e) =>
-      setForm({
-        ...form,
-        comments: e.target.value,
-      })
-    }
-    placeholder="Enter any comments or notes about this flat..."
-    className="w-full border rounded-lg p-3 resize-y focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
-  />
-
-</div>
 
               {/* Collected By */}
 
@@ -519,12 +722,16 @@ collected_by:
                 </label>
 
                 <input
-  type="text"
-  readOnly
-  disabled
-  value={form.collected_by || currentUser?.username || ""}
-  className="w-full border rounded-lg p-3 bg-gray-100 text-gray-700 cursor-not-allowed"
-/>
+                  type="text"
+                  readOnly
+                  disabled
+                  value={
+                    form.collected_by ||
+                    currentUser?.username ||
+                    ""
+                  }
+                  className="w-full border rounded-lg p-3 bg-gray-100 text-gray-700 cursor-not-allowed"
+                />
 
               </div>
 
@@ -537,13 +744,19 @@ collected_by:
                 </label>
 
                 <select
-                  disabled={!canEdit()}
+                  disabled={
+                    !canEdit()
+                  }
                   className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
-                  value={form.status}
+                  value={
+                    form.status
+                  }
                   onChange={(e) =>
                     setForm({
                       ...form,
-                      status: e.target.value,
+
+                      status:
+                        e.target.value,
                     })
                   }
                 >
@@ -562,7 +775,9 @@ collected_by:
 
             </div>
 
-            {/* Permission Warning */}
+            {/* =====================================================
+                PERMISSION WARNING
+            ===================================================== */}
 
             {!canEdit() && (
 
@@ -570,28 +785,35 @@ collected_by:
 
                 <p className="text-yellow-800 font-semibold">
                   This subscription was collected by{" "}
-                  <strong>{form.collected_by}</strong>.
+                  <strong>
+                    {form.collected_by}
+                  </strong>.
                 </p>
 
                 <p className="text-sm text-yellow-700 mt-1">
-                  Only the original collector or the Admin can edit this record.
+                  Only the original collector or the Admin can edit the payment details.
+                  Comments can still be updated by anyone.
                 </p>
 
               </div>
 
             )}
 
-            {/* Collect Button */}
+            {/* =====================================================
+                COLLECT BUTTON
+            ===================================================== */}
 
             <div className="mt-10">
- 
+
               <button
-                 onClick={
-    handleSave
-  }
+                type="button"
+                onClick={
+                  handleSave
+                }
                 disabled={
                   loading ||
-                  form.status !== "Paid" ||
+                  form.status !==
+                    "Paid" ||
                   !canEdit()
                 }
                 className={`w-full text-lg font-bold py-4 rounded-xl shadow-lg transition-all ${
@@ -599,7 +821,8 @@ collected_by:
                     ? "bg-gray-400 text-white"
                     : !canEdit()
                     ? "bg-gray-400 text-gray-200 cursor-not-allowed"
-                    : form.status === "Paid"
+                    : form.status ===
+                      "Paid"
                     ? "bg-green-600 hover:bg-green-700 text-white"
                     : "bg-gray-400 text-gray-200 cursor-not-allowed"
                 }`}
@@ -608,7 +831,8 @@ collected_by:
                   ? "Saving Payment..."
                   : !canEdit()
                   ? "🔒 Not Your Collection"
-                  : form.status === "Paid"
+                  : form.status ===
+                    "Paid"
                   ? "💰 Collect Subscription"
                   : "🔒 Select Paid to Collect"}
               </button>
