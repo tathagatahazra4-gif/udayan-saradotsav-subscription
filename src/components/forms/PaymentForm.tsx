@@ -67,9 +67,12 @@ export default function PaymentForm() {
           data.receipt_number ?? "",
 
         transaction_id:
-          data.transaction_id ?? "",
+  data.transaction_id ?? "",
 
-       collected_by:
+comments:
+  data.comments ?? "",
+
+collected_by:
   data.collected_by && data.collected_by.trim() !== ""
     ? data.collected_by
     : currentUser?.username ?? "",
@@ -108,15 +111,15 @@ export default function PaymentForm() {
     );
   }
 
-  if (!form.mobile_number) {
-    return toast.error("Mobile Number is required.");
-  }
-
-  if (!/^\d{10}$/.test(form.mobile_number)) {
-    return toast.error(
-      "Mobile Number must contain exactly 10 digits."
-    );
-  }
+  
+  if (
+  form.mobile_number &&
+  !/^\d{10}$/.test(form.mobile_number)
+) {
+  return toast.error(
+    "Mobile Number must contain exactly 10 digits."
+  );
+}
 
   if (!form.family_members) {
     return toast.error(
@@ -146,16 +149,17 @@ export default function PaymentForm() {
     setLoading(true);
 
     await updatePayment(flat.flat_number, {
-      owner_name: form.owner_name.trim(),
-      mobile_number: form.mobile_number,
-      family_members: Number(form.family_members),
-      subscription_amount: Number(form.subscription_amount),
-      payment_mode: form.payment_mode,
-      receipt_number: form.receipt_number,
-      transaction_id: form.transaction_id,
-      collected_by: form.collected_by,
-      status: form.status,
-    });
+  owner_name: form.owner_name.trim(),
+  mobile_number: form.mobile_number,
+  family_members: Number(form.family_members),
+  subscription_amount: Number(form.subscription_amount),
+  payment_mode: form.payment_mode,
+  receipt_number: form.receipt_number,
+  transaction_id: form.transaction_id,
+  comments: form.comments,
+  collected_by: form.collected_by,
+  status: form.status,
+});
 
     toast.success(
       `₹${form.subscription_amount} collected successfully`
@@ -315,8 +319,11 @@ export default function PaymentForm() {
               <div>
 
                 <label className="block font-semibold mb-2">
-                  Mobile Number *
-                </label>
+  Mobile Number
+  <span className="text-gray-400 font-normal">
+    {" "}(Optional)
+  </span>
+</label>
 
                 <input
                   type="tel"
@@ -476,6 +483,32 @@ export default function PaymentForm() {
                 />
 
               </div>
+              {/* Comments */}
+
+<div className="lg:col-span-2">
+
+  <label className="block font-semibold mb-2">
+    Comments
+    <span className="text-gray-400 font-normal">
+      {" "}(Optional)
+    </span>
+  </label>
+
+  <textarea
+    rows={4}
+    disabled={!canEdit()}
+    value={form.comments ?? ""}
+    onChange={(e) =>
+      setForm({
+        ...form,
+        comments: e.target.value,
+      })
+    }
+    placeholder="Enter any comments or notes about this flat..."
+    className="w-full border rounded-lg p-3 resize-y focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
+  />
+
+</div>
 
               {/* Collected By */}
 

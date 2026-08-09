@@ -12,6 +12,7 @@ export async function updatePayment(
     payment_mode: string;
     receipt_number: string;
     transaction_id: string;
+    comments: string;
     collected_by: string;
     status: string;
   }
@@ -25,26 +26,46 @@ export async function updatePayment(
   const ownerName = values.owner_name.trim();
   const mobileNumber = values.mobile_number.trim();
   const paymentMode = values.payment_mode.trim();
+  const comments = values.comments?.trim() ?? "";
+
+  /*
+   * Mandatory fields are now:
+   *
+   * Owner Name
+   * Family Members
+   * Subscription Amount
+   * Payment Mode
+   *
+   * Mobile Number is OPTIONAL.
+   */
 
   const allMandatoryFieldsEmpty =
     ownerName === "" &&
-    mobileNumber === "" &&
     values.family_members === 0 &&
     values.subscription_amount === 0 &&
     paymentMode === "";
 
   const allMandatoryFieldsFilled =
     ownerName !== "" &&
-    mobileNumber !== "" &&
     values.family_members > 0 &&
     values.subscription_amount > 0 &&
     paymentMode !== "";
 
+  /*
+   * A TRUE reset means:
+   *
+   * Status = Pending
+   * AND
+   * all mandatory fields are cleared.
+   */
   const resettingToPending =
     values.status === "Pending" &&
     allMandatoryFieldsEmpty;
 
+  // ============================================
   // Prevent partially completed Pending records
+  // ============================================
+
   if (
     values.status === "Pending" &&
     !resettingToPending
@@ -54,7 +75,10 @@ export async function updatePayment(
     );
   }
 
+  // ============================================
   // Prevent incomplete Paid records
+  // ============================================
+
   if (
     values.status === "Paid" &&
     !allMandatoryFieldsFilled
@@ -63,6 +87,10 @@ export async function updatePayment(
       "All mandatory fields are required for a Paid subscription."
     );
   }
+
+  // ============================================
+  // Owner Name validation
+  // ============================================
 
   if (
     values.status === "Paid" &&
@@ -73,8 +101,16 @@ export async function updatePayment(
     );
   }
 
+  // ============================================
+  // Mobile Number validation
+  //
+  // Mobile is OPTIONAL.
+  // But if entered, it must contain exactly
+  // 10 digits.
+  // ============================================
+
   if (
-    values.status === "Paid" &&
+    mobileNumber !== "" &&
     !/^\d{10}$/.test(mobileNumber)
   ) {
     throw new Error(
@@ -82,7 +118,10 @@ export async function updatePayment(
     );
   }
 
-  // Read the latest database state before updating
+  // ============================================
+  // Read latest database state before saving
+  // ============================================
+
   const {
     data: existingFlat,
     error: fetchError,
@@ -113,8 +152,15 @@ export async function updatePayment(
   const isPaidRecord =
     existingFlat.status === "Paid";
 
-  // Paid records can only be edited or reset
-  // by their collector or an Admin
+  // ============================================
+  // Permission
+  //
+  // Paid records can only be edited/reset by:
+  //
+  // 1. Original collector
+  // 2. Admin
+  // ============================================
+
   if (
     isPaidRecord &&
     !isAdmin &&
@@ -124,6 +170,10 @@ export async function updatePayment(
       "You are not allowed to edit this subscription."
     );
   }
+
+  // ============================================
+  // Determine collector
+  // ============================================
 
   let collectedBy = existingCollector;
 
@@ -135,46 +185,96 @@ export async function updatePayment(
     collectedBy = user.username;
   }
 
+  // ============================================
+  // Build database payload
+  // ============================================
+
   const payload = resettingToPending
     ? {
+        /*
+         * Completely release payment information.
+         */
+
         owner_name: "",
+
+        // Mobile is cleared automatically on reset.
         mobile_number: "",
+
         family_members: 0,
+
         subscription_amount: 0,
+
         payment_mode: "",
+
         receipt_number: "",
+
         transaction_id: "",
-        remarks: "",
+
         status: "Pending",
 
+        // Release ownership
         collected_by: "",
+
         created_by: null,
 
         payment_date: null,
 
+        /*
+         * IMPORTANT:
+         *
+         * Comments are NOT deleted when a flat is
+         * reset.
+         *
+         * This allows the next volunteer to see
+         * useful notes about the flat.
+         */
+        comments: comments,
+
         last_updated_by: user.username,
+
         updated_by: user.username,
+
         updated_at: new Date().toISOString(),
       }
     : {
+        /*
+         * Normal collection / edit
+         */
+
         owner_name: ownerName,
+
         mobile_number: mobileNumber,
+
         family_members:
           values.family_members,
+
         subscription_amount:
           values.subscription_amount,
+
         payment_mode: paymentMode,
+
         receipt_number:
           values.receipt_number.trim(),
+
         transaction_id:
           values.transaction_id.trim(),
+
+        comments: comments,
 
         status: "Paid",
 
         collected_by: collectedBy,
-        created_by:
-          existingCollector || user.username,
 
+        created_by:
+          existingCollector ||
+          user.username,
+
+        /*
+         * Set payment date for a new collection.
+         *
+         * Normal edits don't change the original
+         * payment date.
+         */
         payment_date:
           isNewCollection
             ? new Date()
@@ -182,10 +282,19 @@ export async function updatePayment(
                 .split("T")[0]
             : undefined,
 
-        last_updated_by: user.username,
-        updated_by: user.username,
-        updated_at: new Date().toISOString(),
+        last_updated_by:
+          user.username,
+
+        updated_by:
+          user.username,
+
+        updated_at:
+          new Date().toISOString(),
       };
+
+  // ============================================
+  // Build update query
+  // ============================================
 
   let updateQuery = supabase
     .from("flats")
@@ -193,20 +302,27 @@ export async function updatePayment(
     .eq("flat_number", flatNumber);
 
   /*
-   * Atomic protection for simultaneous collection:
-   * a new collection succeeds only while the row
-   * is still Pending and has no collector.
+   * Atomic protection against two volunteers
+   * collecting the same flat simultaneously.
+   *
+   * A new collection succeeds only if the
+   * database still says Pending.
    */
+
   if (isNewCollection) {
     updateQuery = updateQuery
       .eq("status", "Pending")
-      .eq("collected_by", existingCollector);
+      .eq(
+        "collected_by",
+        existingCollector
+      );
   }
 
   /*
-   * Protect edits and resets against a record changing
-   * after the user loaded it.
+   * Protect Paid edits/reset from simultaneous
+   * changes by another user.
    */
+
   if (isPaidRecord) {
     updateQuery = updateQuery
       .eq("status", "Paid")
@@ -216,6 +332,10 @@ export async function updatePayment(
       );
   }
 
+  // ============================================
+  // Execute update
+  // ============================================
+
   const { data, error } =
     await updateQuery.select();
 
@@ -224,8 +344,13 @@ export async function updatePayment(
       "Payment update error:",
       error
     );
+
     throw error;
   }
+
+  // ============================================
+  // Detect simultaneous modification
+  // ============================================
 
   if (!data || data.length === 0) {
     if (isNewCollection) {
@@ -238,6 +363,10 @@ export async function updatePayment(
       "This record was changed by another user. Please refresh and try again."
     );
   }
+
+  // ============================================
+  // Activity Log
+  // ============================================
 
   const action = resettingToPending
     ? "RESET SUBSCRIPTION"
@@ -256,6 +385,11 @@ export async function updatePayment(
       description
     );
   } catch (err) {
+    /*
+     * Activity log failure must not undo a
+     * successful payment update.
+     */
+
     console.warn(
       "Activity log failed",
       err

@@ -9,6 +9,11 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
 import { getBuildingFlats } from "@/services/buildingService";
 
+import {
+  getBuildingComment,
+  saveBuildingComment,
+} from "@/services/buildingCommentService";
+
 export default function BuildingDetailsPage() {
   const { building } = useParams();
 
@@ -18,11 +23,45 @@ export default function BuildingDetailsPage() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All");
 
+  // Building Comments
+  const [buildingComment, setBuildingComment] = useState("");
+  const [commentUpdatedBy, setCommentUpdatedBy] = useState("");
+  const [commentUpdatedAt, setCommentUpdatedAt] = useState<string | null>(
+    null
+  );
+  const [savingComment, setSavingComment] = useState(false);
+
   useEffect(() => {
     async function load() {
       try {
-        const data = await getBuildingFlats(building as string);
+        const buildingName = decodeURIComponent(
+          building as string
+        );
+
+        // Load flats
+        const data = await getBuildingFlats(
+          buildingName
+        );
+
         setFlats(data);
+
+        // Load building comment
+        const commentData =
+          await getBuildingComment(
+            buildingName
+          );
+
+        setBuildingComment(
+          commentData.comments ?? ""
+        );
+
+        setCommentUpdatedBy(
+          commentData.updated_by ?? ""
+        );
+
+        setCommentUpdatedAt(
+          commentData.updated_at ?? null
+        );
       } catch (err) {
         console.error(err);
       } finally {
@@ -34,6 +73,47 @@ export default function BuildingDetailsPage() {
       load();
     }
   }, [building]);
+
+  async function handleSaveComment() {
+    try {
+      setSavingComment(true);
+
+      const buildingName = decodeURIComponent(
+        building as string
+      );
+
+      const result =
+        await saveBuildingComment(
+          buildingName,
+          buildingComment
+        );
+
+      setBuildingComment(
+        result.comments ?? ""
+      );
+
+      setCommentUpdatedBy(
+        result.updated_by ?? ""
+      );
+
+      setCommentUpdatedAt(
+        result.updated_at ?? null
+      );
+
+      alert(
+        "Building comments saved successfully."
+      );
+    } catch (err: any) {
+      console.error(err);
+
+      alert(
+        err?.message ||
+          "Failed to save building comments."
+      );
+    } finally {
+      setSavingComment(false);
+    }
+  }
 
   const filteredFlats = useMemo(() => {
     return flats.filter((flat) => {
@@ -62,19 +142,47 @@ export default function BuildingDetailsPage() {
     (flat) => flat.status === "Paid"
   ).length;
 
-  const pendingFlats = totalFlats - paidFlats;
+  const pendingFlats =
+    totalFlats - paidFlats;
 
   const totalCollection = flats
-    .filter((flat) => flat.status === "Paid")
+    .filter(
+      (flat) => flat.status === "Paid"
+    )
     .reduce(
-      (sum, flat) => sum + (flat.subscription_amount || 0),
+      (sum, flat) =>
+        sum +
+        Number(
+          flat.subscription_amount || 0
+        ),
       0
     );
 
   const collectionPercentage =
     totalFlats === 0
       ? 0
-      : Math.round((paidFlats / totalFlats) * 100);
+      : Math.round(
+          (paidFlats / totalFlats) *
+            100
+        );
+
+  function formatUpdatedDate(
+    date: string | null
+  ) {
+    if (!date) {
+      return "";
+    }
+
+    return new Date(
+      date
+    ).toLocaleString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }
 
   if (loading) {
     return (
@@ -91,11 +199,11 @@ export default function BuildingDetailsPage() {
   return (
     <ProtectedRoute>
       <AppLayout>
-
         <div className="space-y-8">
 
-          <div>
+          {/* Header */}
 
+          <div>
             <h1 className="text-4xl font-bold">
               Building {building}
             </h1>
@@ -103,13 +211,16 @@ export default function BuildingDetailsPage() {
             <p className="text-gray-500 mt-2">
               Building Overview
             </p>
-
           </div>
+
+          {/* Summary Cards */}
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
 
             <div className="bg-blue-600 text-white rounded-xl p-5 shadow">
-              <p>Total Flats</p>
+              <p>
+                Total Flats
+              </p>
 
               <h2 className="text-3xl font-bold mt-2">
                 {totalFlats}
@@ -117,7 +228,9 @@ export default function BuildingDetailsPage() {
             </div>
 
             <div className="bg-green-600 text-white rounded-xl p-5 shadow">
-              <p>Paid Flats</p>
+              <p>
+                Paid Flats
+              </p>
 
               <h2 className="text-3xl font-bold mt-2">
                 {paidFlats}
@@ -125,7 +238,9 @@ export default function BuildingDetailsPage() {
             </div>
 
             <div className="bg-red-600 text-white rounded-xl p-5 shadow">
-              <p>Pending Flats</p>
+              <p>
+                Pending Flats
+              </p>
 
               <h2 className="text-3xl font-bold mt-2">
                 {pendingFlats}
@@ -133,14 +248,19 @@ export default function BuildingDetailsPage() {
             </div>
 
             <div className="bg-purple-600 text-white rounded-xl p-5 shadow">
-              <p>Collection</p>
+              <p>
+                Collection
+              </p>
 
               <h2 className="text-3xl font-bold mt-2">
-                ₹{totalCollection}
+                ₹
+                {totalCollection}
               </h2>
             </div>
 
           </div>
+
+          {/* Collection Progress */}
 
           <div className="bg-white rounded-xl shadow p-6">
 
@@ -151,7 +271,10 @@ export default function BuildingDetailsPage() {
               </h2>
 
               <span className="font-semibold">
-                {collectionPercentage}%
+                {
+                  collectionPercentage
+                }
+                %
               </span>
 
             </div>
@@ -169,6 +292,95 @@ export default function BuildingDetailsPage() {
 
           </div>
 
+          {/* Building Comments */}
+
+          <div className="bg-white rounded-xl shadow p-6">
+
+            <div className="mb-4">
+
+              <h2 className="text-xl font-bold text-blue-900">
+                Building Comments
+              </h2>
+
+              <p className="text-sm text-gray-500 mt-1">
+                Use this section to record flats
+                that are locked, vacant, have no
+                owner available, or require a
+                follow-up visit.
+              </p>
+
+            </div>
+
+            <textarea
+              rows={5}
+              value={buildingComment}
+              onChange={(e) =>
+                setBuildingComment(
+                  e.target.value
+                )
+              }
+              placeholder={
+                "Example:\n01B - Locked\n02C - Owner out of station\n03B - Vacant flat"
+              }
+              className="w-full border rounded-xl p-4 resize-y focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mt-4">
+
+              <div className="text-sm text-gray-500">
+
+                {commentUpdatedBy ? (
+                  <>
+                    <p>
+                      Last updated by:{" "}
+                      <span className="font-semibold text-gray-700">
+                        {
+                          commentUpdatedBy
+                        }
+                      </span>
+                    </p>
+
+                    {commentUpdatedAt && (
+                      <p className="mt-1">
+                        Updated:{" "}
+                        {
+                          formatUpdatedDate(
+                            commentUpdatedAt
+                          )
+                        }
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  <p>
+                    No comments have been added
+                    yet.
+                  </p>
+                )}
+
+              </div>
+
+              <button
+                type="button"
+                onClick={
+                  handleSaveComment
+                }
+                disabled={
+                  savingComment
+                }
+                className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-6 py-3 rounded-xl font-semibold transition"
+              >
+                {savingComment
+                  ? "Saving..."
+                  : "Save Comments"}
+              </button>
+
+            </div>
+
+          </div>
+
+          {/* Search + Status Filter */}
+
           <div className="flex flex-col md:flex-row gap-4">
 
             <input
@@ -177,7 +389,9 @@ export default function BuildingDetailsPage() {
               className="border rounded-lg p-3 flex-1"
               value={search}
               onChange={(e) =>
-                setSearch(e.target.value)
+                setSearch(
+                  e.target.value
+                )
               }
             />
 
@@ -185,15 +399,27 @@ export default function BuildingDetailsPage() {
               className="border rounded-lg p-3 w-full md:w-48"
               value={status}
               onChange={(e) =>
-                setStatus(e.target.value)
+                setStatus(
+                  e.target.value
+                )
               }
             >
-              <option>All</option>
-              <option>Paid</option>
-              <option>Pending</option>
+              <option>
+                All
+              </option>
+
+              <option>
+                Paid
+              </option>
+
+              <option>
+                Pending
+              </option>
             </select>
 
           </div>
+
+          {/* Flats Table */}
 
           <div className="bg-white rounded-xl shadow overflow-x-auto">
 
@@ -231,59 +457,76 @@ export default function BuildingDetailsPage() {
 
               </thead>
 
-              <tbody>                {filteredFlats.map((flat) => (
+              <tbody>
 
-                  <tr
-                    key={flat.flat_number}
-                    className="border-t hover:bg-gray-50"
-                  >
+                {filteredFlats.map(
+                  (flat) => (
 
-                    <td className="p-4 font-semibold">
-                      {flat.flat_number}
-                    </td>
+                    <tr
+                      key={
+                        flat.flat_number
+                      }
+                      className="border-t hover:bg-gray-50"
+                    >
 
-                    <td className="p-4">
-                      {flat.owner_name || "-"}
-                    </td>
+                      <td className="p-4 font-semibold">
+                        {
+                          flat.flat_number
+                        }
+                      </td>
 
-                    <td className="p-4">
-                      {flat.mobile_number || "-"}
-                    </td>
+                      <td className="p-4">
+                        {flat.owner_name ||
+                          "-"}
+                      </td>
 
-                    <td className="p-4 text-center">
+                      <td className="p-4">
+                        {flat.mobile_number ||
+                          "-"}
+                      </td>
 
-                      <span
-                        className={`px-3 py-1 rounded-full text-white text-sm ${
-                          flat.status === "Paid"
-                            ? "bg-green-600"
-                            : "bg-red-600"
-                        }`}
-                      >
-                        {flat.status}
-                      </span>
+                      <td className="p-4 text-center">
 
-                    </td>
+                        <span
+                          className={`px-3 py-1 rounded-full text-white text-sm ${
+                            flat.status ===
+                            "Paid"
+                              ? "bg-green-600"
+                              : "bg-red-600"
+                          }`}
+                        >
+                          {
+                            flat.status
+                          }
+                        </span>
 
-                    <td className="p-4 text-center">
-                      ₹{flat.subscription_amount}
-                    </td>
+                      </td>
 
-                    <td className="p-4 text-center">
+                      <td className="p-4 text-center">
+                        ₹
+                        {
+                          flat.subscription_amount
+                        }
+                      </td>
 
-                      <Link
-                        href={`/flats/${flat.flat_number}`}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
-                      >
-                        Edit
-                      </Link>
+                      <td className="p-4 text-center">
 
-                    </td>
+                        <Link
+                          href={`/flats/${flat.flat_number}`}
+                          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+                        >
+                          Edit
+                        </Link>
 
-                  </tr>
+                      </td>
 
-                ))}
+                    </tr>
 
-                {filteredFlats.length === 0 && (
+                  )
+                )}
+
+                {filteredFlats.length ===
+                  0 && (
                   <tr>
                     <td
                       colSpan={6}
@@ -301,7 +544,6 @@ export default function BuildingDetailsPage() {
           </div>
 
         </div>
-
       </AppLayout>
     </ProtectedRoute>
   );

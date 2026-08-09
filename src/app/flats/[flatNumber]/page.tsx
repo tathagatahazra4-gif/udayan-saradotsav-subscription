@@ -26,18 +26,14 @@ export default function EditFlatPage() {
       return false;
     }
 
-    // Admin can edit every record
     if (isAdmin) {
       return true;
     }
 
-    // A completely released Pending flat has no collector
     if (!form.collected_by?.trim()) {
       return true;
     }
 
-    // Paid or previously owned records can only be edited
-    // by their corresponding collector
     return form.collected_by === currentUser.username;
   };
 
@@ -54,23 +50,20 @@ export default function EditFlatPage() {
 
         setForm({
           ...data,
-
           owner_name: data.owner_name ?? "",
           mobile_number: data.mobile_number ?? "",
-
           family_members:
             Number(data.family_members) === 0
               ? ""
               : data.family_members,
-
           subscription_amount:
             Number(data.subscription_amount) === 0
               ? ""
               : data.subscription_amount,
-
           payment_mode: data.payment_mode ?? "",
           receipt_number: data.receipt_number ?? "",
           transaction_id: data.transaction_id ?? "",
+          comments: data.comments ?? "",
           collected_by: data.collected_by ?? "",
           status: data.status ?? "Pending",
         });
@@ -126,9 +119,12 @@ export default function EditFlatPage() {
       form.transaction_id ?? ""
     ).trim();
 
+    const comments = String(
+      form.comments ?? ""
+    ).trim();
+
     const allMandatoryFieldsFilled =
       ownerName !== "" &&
-      mobileNumber !== "" &&
       familyMembers !== "" &&
       Number(familyMembers) > 0 &&
       subscriptionAmount !== "" &&
@@ -137,7 +133,6 @@ export default function EditFlatPage() {
 
     const allMandatoryFieldsEmpty =
       ownerName === "" &&
-      mobileNumber === "" &&
       familyMembers === "" &&
       subscriptionAmount === "" &&
       paymentMode === "";
@@ -146,13 +141,6 @@ export default function EditFlatPage() {
       form.status === "Pending" &&
       allMandatoryFieldsEmpty;
 
-    /*
-     * RESET CASE
-     *
-     * A record can be restored to Pending only when:
-     * 1. Status is Pending
-     * 2. Every mandatory field is empty
-     */
     if (resettingToPending) {
       const confirmReset = window.confirm(
         "This will erase all payment details, remove the collector and restore the flat to Pending. Continue?"
@@ -173,6 +161,7 @@ export default function EditFlatPage() {
           payment_mode: "",
           receipt_number: "",
           transaction_id: "",
+          comments,
           collected_by: "",
           status: "Pending",
         });
@@ -196,24 +185,13 @@ export default function EditFlatPage() {
       return;
     }
 
-    /*
-     * INVALID PENDING CASE
-     *
-     * Pending cannot be saved while only some fields
-     * have been cleared or payment details still remain.
-     */
     if (form.status === "Pending") {
       alert(
-        "To restore this record to Pending, clear all mandatory fields: Owner Name, Mobile Number, Family Members, Subscription Amount and Payment Mode."
+        "To restore this record to Pending, clear all mandatory fields: Owner Name, Family Members, Subscription Amount and Payment Mode."
       );
       return;
     }
 
-    /*
-     * NORMAL PAID EDIT
-     *
-     * Every mandatory field must remain completed.
-     */
     if (!allMandatoryFieldsFilled) {
       alert(
         "All mandatory fields are required for a Paid subscription. To release this flat, clear all mandatory fields and change the status to Pending."
@@ -228,7 +206,10 @@ export default function EditFlatPage() {
       return;
     }
 
-    if (!/^\d{10}$/.test(mobileNumber)) {
+    if (
+      mobileNumber !== "" &&
+      !/^\d{10}$/.test(mobileNumber)
+    ) {
       alert(
         "Mobile Number must contain exactly 10 digits."
       );
@@ -268,10 +249,8 @@ export default function EditFlatPage() {
         payment_mode: paymentMode,
         receipt_number: receiptNumber,
         transaction_id: transactionId,
-
-        // The service preserves the original collector.
+        comments,
         collected_by: form.collected_by,
-
         status: "Paid",
       });
 
@@ -318,8 +297,8 @@ export default function EditFlatPage() {
 
           <p className="text-gray-500 mb-8">
             Update a Paid subscription or completely
-            clear its details and change the status to
-            Pending to release the flat.
+            clear its mandatory details and change the status
+            to Pending to release the flat.
           </p>
 
           {!editable && (
@@ -375,7 +354,10 @@ export default function EditFlatPage() {
 
             <div>
               <label className="font-semibold block mb-2">
-                Mobile Number *
+                Mobile Number
+                <span className="text-gray-400 font-normal">
+                  {" "}(Optional)
+                </span>
               </label>
 
               <input
@@ -512,6 +494,29 @@ export default function EditFlatPage() {
                 }
                 className="w-full border rounded p-3 disabled:bg-gray-100 disabled:cursor-not-allowed"
                 placeholder="UPI / Bank Transaction ID"
+              />
+            </div>
+
+            <div>
+              <label className="font-semibold block mb-2">
+                Comments
+                <span className="text-gray-400 font-normal">
+                  {" "}(Optional)
+                </span>
+              </label>
+
+              <textarea
+                rows={4}
+                value={form.comments ?? ""}
+                disabled={!editable}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    comments: e.target.value,
+                  })
+                }
+                className="w-full border rounded p-3 disabled:bg-gray-100 disabled:cursor-not-allowed resize-y"
+                placeholder="Enter any comments or notes about this flat..."
               />
             </div>
 
