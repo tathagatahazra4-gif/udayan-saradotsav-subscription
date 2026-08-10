@@ -41,67 +41,58 @@ export default function BuildingsPage() {
     }
 
     const buildingName =
-      building.building.toLowerCase();
+      String(building.building).toLowerCase();
+
+    const [buildingType, buildingNumberText] =
+      buildingName.split("-");
+
+    const buildingNumber =
+      Number(buildingNumberText);
 
     // Number-only search:
-    // 1  -> UG-01 / UV-01
-    // 2  -> UG-02 / UV-02
-    // 10 -> UG-10 / UV-10
+    // 1  -> UG-1 and UV-1 only
+    // 5  -> UG-5 and UV-5 only
+    // 10 -> UG-10 and UV-10 only
+    //
+    // Typing 1 will NOT show 10, 11, 21, 31, etc.
     if (/^\d+$/.test(keyword)) {
-      const [, buildingNumber] =
-        buildingName.split("-");
-
-      // Single digit search should match
-      // only 01-09 and NOT 10, 11, 21, etc.
-      if (keyword.length === 1) {
-        return (
-          buildingNumber ===
-          `0${keyword}`
-        );
-      }
-
-      // Double-digit search must match exactly
       return (
-        buildingNumber === keyword
+        buildingNumber === Number(keyword)
       );
     }
 
     // Normalize searches such as:
-    // UG 1 -> UG-1
-    // UV 10 -> UV-10
+    // UV 1  -> UV-1
+    // UG 10 -> UG-10
     const normalizedKeyword =
-      keyword.replace(/\s+/g, "-");
+      keyword
+        .replace(/\s+/g, "-")
+        .replace(/--+/g, "-");
 
-    // Search with building type:
-    // UG-1  -> UG-01
-    // UV-1  -> UV-01
-    // UG-10 -> UG-10
-    // UV-10 -> UV-10
+    // Search with type + number:
+    // UV-1  -> UV-1 only
+    // UG-1  -> UG-1 only
+    // UV-10 -> UV-10 only
+    // UG-10 -> UG-10 only
     const typedBuilding =
       normalizedKeyword.match(
         /^(ug|uv)-?(\d+)$/
       );
 
     if (typedBuilding) {
-      const type =
+      const requestedType =
         typedBuilding[1];
 
-      const number =
-        typedBuilding[2];
-
-      if (number.length === 1) {
-        return (
-          buildingName ===
-          `${type}-0${number}`
-        );
-      }
+      const requestedNumber =
+        Number(typedBuilding[2]);
 
       return (
-        buildingName ===
-        `${type}-${number}`
+        buildingType === requestedType &&
+        buildingNumber === requestedNumber
       );
     }
 
+    // Fallback for normal text searches
     return buildingName.includes(
       normalizedKeyword
     );
@@ -337,8 +328,7 @@ export default function BuildingsPage() {
               );
             })}
 
-            {filteredBuildings.length ===
-              0 && (
+            {filteredBuildings.length === 0 && (
 
               <div className="col-span-full bg-white rounded-2xl shadow p-10 text-center text-gray-500">
                 No buildings found.
