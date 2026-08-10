@@ -1,7 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import {
+  useParams,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 
 import AppLayout from "@/components/layout/AppLayout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
@@ -13,15 +17,51 @@ import { saveFlatComment } from "@/services/flatCommentService";
 
 export default function EditFlatPage() {
   const { flatNumber } = useParams();
+
   const router = useRouter();
 
+  const searchParams = useSearchParams();
+
+  const fromBuilding =
+    searchParams.get("fromBuilding");
+
   const [form, setForm] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [savingComment, setSavingComment] = useState(false);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [saving, setSaving] =
+    useState(false);
+
+  const [
+    savingComment,
+    setSavingComment,
+  ] = useState(false);
 
   const currentUser = getLoggedInUser();
-  const isAdmin = currentUser?.role === "Admin";
+
+  const isAdmin =
+    currentUser?.role === "Admin";
+
+  // =====================================================
+  // RETURN TO PREVIOUS SOURCE
+  // =====================================================
+
+  function navigateAfterSave() {
+    if (fromBuilding) {
+      router.push(
+        `/buildings/${encodeURIComponent(
+          fromBuilding
+        )}`
+      );
+    } else {
+      router.push("/flats");
+    }
+  }
+
+  // =====================================================
+  // PERMISSION CHECK
+  // =====================================================
 
   const canEdit = () => {
     if (!form || !currentUser) {
@@ -36,62 +76,98 @@ export default function EditFlatPage() {
       return true;
     }
 
-    return form.collected_by === currentUser.username;
+    return (
+      form.collected_by ===
+      currentUser.username
+    );
   };
+
+  // =====================================================
+  // LOAD FLAT
+  // =====================================================
 
   useEffect(() => {
     async function loadFlat() {
       try {
-        const data = await searchFlat(
-          decodeURIComponent(flatNumber as string)
-        );
+        const data =
+          await searchFlat(
+            decodeURIComponent(
+              flatNumber as string
+            )
+          );
 
         if (!data) {
-          throw new Error("Flat not found.");
+          throw new Error(
+            "Flat not found."
+          );
         }
 
         setForm({
           ...data,
 
-          owner_name: data.owner_name ?? "",
+          owner_name:
+            data.owner_name ?? "",
 
-          mobile_number: data.mobile_number ?? "",
+          mobile_number:
+            data.mobile_number ?? "",
 
           family_members:
-            Number(data.family_members) === 0
+            Number(
+              data.family_members
+            ) === 0
               ? ""
               : data.family_members,
 
           subscription_amount:
-            Number(data.subscription_amount) === 0
+            Number(
+              data.subscription_amount
+            ) === 0
               ? ""
               : data.subscription_amount,
 
-          payment_mode: data.payment_mode ?? "",
+          payment_mode:
+            data.payment_mode ?? "",
 
-          receipt_number: data.receipt_number ?? "",
+          receipt_number:
+            data.receipt_number ?? "",
 
-          transaction_id: data.transaction_id ?? "",
+          transaction_id:
+            data.transaction_id ?? "",
 
-          comments: data.comments ?? "",
+          comments:
+            data.comments ?? "",
 
-          collected_by: data.collected_by ?? "",
+          collected_by:
+            data.collected_by ?? "",
 
-          status: data.status ?? "Pending",
+          status:
+            data.status ?? "Pending",
         });
       } catch (err) {
         console.error(err);
 
         alert("Flat not found.");
 
-        router.push("/flats");
+        if (fromBuilding) {
+          router.push(
+            `/buildings/${encodeURIComponent(
+              fromBuilding
+            )}`
+          );
+        } else {
+          router.push("/flats");
+        }
       } finally {
         setLoading(false);
       }
     }
 
     loadFlat();
-  }, [flatNumber, router]);
+  }, [
+    flatNumber,
+    router,
+    fromBuilding,
+  ]);
 
   // =====================================================
   // SAVE COMMENT
@@ -104,24 +180,34 @@ export default function EditFlatPage() {
     }
 
     if (!currentUser) {
-      alert("You must be logged in to update comments.");
+      alert(
+        "You must be logged in to update comments."
+      );
+
       return;
     }
 
     try {
       setSavingComment(true);
 
-      const result = await saveFlatComment(
-        form.flat_number,
-        form.comments ?? ""
+      const result =
+        await saveFlatComment(
+          form.flat_number,
+          form.comments ?? ""
+        );
+
+      setForm(
+        (previousForm: any) => ({
+          ...previousForm,
+
+          comments:
+            result.comments ?? "",
+        })
       );
 
-      setForm((previousForm: any) => ({
-        ...previousForm,
-        comments: result.comments ?? "",
-      }));
-
-      alert("Comment saved successfully.");
+      alert(
+        "Comment saved successfully."
+      );
     } catch (err: any) {
       console.error(err);
 
@@ -206,9 +292,10 @@ export default function EditFlatPage() {
     // =====================================================
 
     if (resettingToPending) {
-      const confirmReset = window.confirm(
-        "This will erase all payment details, remove the collector and restore the flat to Pending. Continue?"
-      );
+      const confirmReset =
+        window.confirm(
+          "This will erase all payment details, remove the collector and restore the flat to Pending. Continue?"
+        );
 
       if (!confirmReset) {
         return;
@@ -217,24 +304,36 @@ export default function EditFlatPage() {
       try {
         setSaving(true);
 
-        await updatePayment(form.flat_number, {
-          owner_name: "",
-          mobile_number: "",
-          family_members: 0,
-          subscription_amount: 0,
-          payment_mode: "",
-          receipt_number: "",
-          transaction_id: "",
-          comments,
-          collected_by: "",
-          status: "Pending",
-        });
+        await updatePayment(
+          form.flat_number,
+          {
+            owner_name: "",
+
+            mobile_number: "",
+
+            family_members: 0,
+
+            subscription_amount: 0,
+
+            payment_mode: "",
+
+            receipt_number: "",
+
+            transaction_id: "",
+
+            comments,
+
+            collected_by: "",
+
+            status: "Pending",
+          }
+        );
 
         alert(
           "The subscription has been restored to Pending. Any volunteer can now collect it."
         );
 
-        router.push("/flats");
+        navigateAfterSave();
       } catch (err: any) {
         console.error(err);
 
@@ -273,7 +372,11 @@ export default function EditFlatPage() {
       return;
     }
 
-    if (!/^[a-zA-Z\s]+$/.test(ownerName)) {
+    if (
+      !/^[a-zA-Z\s]+$/.test(
+        ownerName
+      )
+    ) {
       alert(
         "Owner Name can contain alphabets and spaces only."
       );
@@ -281,11 +384,14 @@ export default function EditFlatPage() {
       return;
     }
 
-    // Mobile Number is optional,
-    // but must contain exactly 10 digits if entered
+    // Mobile Number is optional.
+    // If supplied, it must be exactly 10 digits.
+
     if (
       mobileNumber !== "" &&
-      !/^\d{10}$/.test(mobileNumber)
+      !/^\d{10}$/.test(
+        mobileNumber
+      )
     ) {
       alert(
         "Mobile Number must contain exactly 10 digits."
@@ -295,7 +401,9 @@ export default function EditFlatPage() {
     }
 
     if (
-      !Number.isInteger(Number(familyMembers)) ||
+      !Number.isInteger(
+        Number(familyMembers)
+      ) ||
       Number(familyMembers) < 1
     ) {
       alert(
@@ -306,8 +414,14 @@ export default function EditFlatPage() {
     }
 
     if (
-      Number.isNaN(Number(subscriptionAmount)) ||
-      Number(subscriptionAmount) <= 0
+      Number.isNaN(
+        Number(
+          subscriptionAmount
+        )
+      ) ||
+      Number(
+        subscriptionAmount
+      ) <= 0
     ) {
       alert(
         "Subscription Amount must be greater than zero."
@@ -323,38 +437,48 @@ export default function EditFlatPage() {
     try {
       setSaving(true);
 
-      await updatePayment(form.flat_number, {
-        owner_name: ownerName,
+      await updatePayment(
+        form.flat_number,
+        {
+          owner_name:
+            ownerName,
 
-        mobile_number: mobileNumber,
+          mobile_number:
+            mobileNumber,
 
-        family_members:
-          Number(familyMembers),
+          family_members:
+            Number(
+              familyMembers
+            ),
 
-        subscription_amount:
-          Number(subscriptionAmount),
+          subscription_amount:
+            Number(
+              subscriptionAmount
+            ),
 
-        payment_mode: paymentMode,
+          payment_mode:
+            paymentMode,
 
-        receipt_number:
-          receiptNumber,
+          receipt_number:
+            receiptNumber,
 
-        transaction_id:
-          transactionId,
+          transaction_id:
+            transactionId,
 
-        comments,
+          comments,
 
-        collected_by:
-          form.collected_by,
+          collected_by:
+            form.collected_by,
 
-        status: "Paid",
-      });
+          status: "Paid",
+        }
+      );
 
       alert(
         "Payment details updated successfully."
       );
 
-      router.push("/flats");
+      navigateAfterSave();
     } catch (err: any) {
       console.error(err);
 
@@ -366,6 +490,10 @@ export default function EditFlatPage() {
       setSaving(false);
     }
   }
+
+  // =====================================================
+  // LOADING
+  // =====================================================
 
   if (loading) {
     return (
@@ -388,6 +516,7 @@ export default function EditFlatPage() {
   return (
     <ProtectedRoute>
       <AppLayout>
+
         <div className="max-w-3xl mx-auto bg-white shadow rounded-lg p-5 md:p-8">
 
           {/* Page Header */}
@@ -402,7 +531,6 @@ export default function EditFlatPage() {
 
           {/* =====================================================
               FLAT COMMENTS
-              Visible first and editable by everybody
           ===================================================== */}
 
           <div className="mb-8 bg-blue-50 border border-blue-200 rounded-xl p-5">
@@ -421,11 +549,15 @@ export default function EditFlatPage() {
 
             <textarea
               rows={4}
-              value={form.comments ?? ""}
+              value={
+                form.comments ?? ""
+              }
               onChange={(e) =>
                 setForm({
                   ...form,
-                  comments: e.target.value,
+
+                  comments:
+                    e.target.value,
                 })
               }
               placeholder="Example: Flat locked, owner unavailable, revisit after 6 PM..."
@@ -436,8 +568,12 @@ export default function EditFlatPage() {
 
               <button
                 type="button"
-                onClick={handleSaveComment}
-                disabled={savingComment}
+                onClick={
+                  handleSaveComment
+                }
+                disabled={
+                  savingComment
+                }
                 className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-5 py-2 rounded-lg font-semibold transition"
               >
                 {savingComment
@@ -452,6 +588,7 @@ export default function EditFlatPage() {
           {/* Permission Warning */}
 
           {!editable && (
+
             <div className="mb-6 rounded-lg border border-yellow-300 bg-yellow-50 p-4">
 
               <p className="font-semibold text-yellow-800">
@@ -466,6 +603,7 @@ export default function EditFlatPage() {
               </p>
 
             </div>
+
           )}
 
           <p className="text-gray-500 mb-8">
@@ -489,7 +627,9 @@ export default function EditFlatPage() {
               </label>
 
               <input
-                value={form.flat_number}
+                value={
+                  form.flat_number
+                }
                 disabled
                 className="w-full border rounded p-3 bg-gray-100 cursor-not-allowed"
               />
@@ -506,11 +646,14 @@ export default function EditFlatPage() {
 
               <input
                 type="text"
-                value={form.owner_name}
+                value={
+                  form.owner_name
+                }
                 disabled={!editable}
                 onChange={(e) =>
                   setForm({
                     ...form,
+
                     owner_name:
                       e.target.value.replace(
                         /[^a-zA-Z\s]/g,
@@ -530,8 +673,10 @@ export default function EditFlatPage() {
 
               <label className="font-semibold block mb-2">
                 Mobile Number
+
                 <span className="text-gray-400 font-normal">
-                  {" "}(Optional)
+                  {" "}
+                  (Optional)
                 </span>
               </label>
 
@@ -539,15 +684,24 @@ export default function EditFlatPage() {
                 type="tel"
                 inputMode="numeric"
                 maxLength={10}
-                value={form.mobile_number}
+                value={
+                  form.mobile_number
+                }
                 disabled={!editable}
                 onChange={(e) =>
                   setForm({
                     ...form,
+
                     mobile_number:
                       e.target.value
-                        .replace(/\D/g, "")
-                        .slice(0, 10),
+                        .replace(
+                          /\D/g,
+                          ""
+                        )
+                        .slice(
+                          0,
+                          10
+                        ),
                   })
                 }
                 className="w-full border rounded p-3 disabled:bg-gray-100 disabled:cursor-not-allowed"
@@ -567,11 +721,14 @@ export default function EditFlatPage() {
               <input
                 type="number"
                 min="1"
-                value={form.family_members}
+                value={
+                  form.family_members
+                }
                 disabled={!editable}
                 onChange={(e) =>
                   setForm({
                     ...form,
+
                     family_members:
                       e.target.value,
                   })
@@ -600,6 +757,7 @@ export default function EditFlatPage() {
                 onChange={(e) =>
                   setForm({
                     ...form,
+
                     subscription_amount:
                       e.target.value,
                   })
@@ -619,11 +777,14 @@ export default function EditFlatPage() {
               </label>
 
               <select
-                value={form.payment_mode}
+                value={
+                  form.payment_mode
+                }
                 disabled={!editable}
                 onChange={(e) =>
                   setForm({
                     ...form,
+
                     payment_mode:
                       e.target.value,
                   })
@@ -660,11 +821,14 @@ export default function EditFlatPage() {
               </label>
 
               <input
-                value={form.receipt_number}
+                value={
+                  form.receipt_number
+                }
                 disabled={!editable}
                 onChange={(e) =>
                   setForm({
                     ...form,
+
                     receipt_number:
                       e.target.value,
                   })
@@ -684,11 +848,14 @@ export default function EditFlatPage() {
               </label>
 
               <input
-                value={form.transaction_id}
+                value={
+                  form.transaction_id
+                }
                 disabled={!editable}
                 onChange={(e) =>
                   setForm({
                     ...form,
+
                     transaction_id:
                       e.target.value,
                   })
@@ -709,7 +876,8 @@ export default function EditFlatPage() {
 
               <input
                 value={
-                  form.collected_by || ""
+                  form.collected_by ||
+                  ""
                 }
                 readOnly
                 disabled
@@ -727,11 +895,14 @@ export default function EditFlatPage() {
               </label>
 
               <select
-                value={form.status}
+                value={
+                  form.status
+                }
                 disabled={!editable}
                 onChange={(e) =>
                   setForm({
                     ...form,
+
                     status:
                       e.target.value,
                   })
@@ -755,7 +926,9 @@ export default function EditFlatPage() {
 
             <button
               type="button"
-              onClick={handleSave}
+              onClick={
+                handleSave
+              }
               disabled={
                 saving ||
                 !editable
@@ -766,7 +939,8 @@ export default function EditFlatPage() {
                 ? "Saving..."
                 : !editable
                 ? "Not Allowed to Edit Payment Details"
-                : form.status === "Pending"
+                : form.status ===
+                  "Pending"
                 ? "Restore Flat to Pending"
                 : "Save Changes"}
             </button>
@@ -774,6 +948,7 @@ export default function EditFlatPage() {
           </div>
 
         </div>
+
       </AppLayout>
     </ProtectedRoute>
   );

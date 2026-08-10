@@ -519,7 +519,9 @@ export default function BuildingDetailsPage() {
                       <td className="p-4 text-center whitespace-nowrap">
 
                         <Link
-                          href={`/flats/${flat.flat_number}`}
+                          href={`/flats/${flat.flat_number}?fromBuilding=${encodeURIComponent(
+                            building as string
+                          )}`}
                           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
                         >
                           Edit
