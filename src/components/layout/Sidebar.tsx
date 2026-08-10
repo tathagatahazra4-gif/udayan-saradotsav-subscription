@@ -15,6 +15,7 @@ import {
   FaFileImport,
   FaTimes,
   FaClipboardList,
+  FaCalendarDay,
 } from "react-icons/fa";
 
 interface SidebarProps {
@@ -37,6 +38,11 @@ const menu = [
     name: "My Collections",
     href: "/my-collections",
     icon: FaClipboardList,
+  },
+  {
+    name: "Daily Collection",
+    href: "/daily-collection",
+    icon: FaCalendarDay,
   },
   {
     name: "Buildings",
@@ -118,13 +124,10 @@ export default function Sidebar({
           }
         `}
       >
-
         {/* Header */}
 
         <div className="p-5 border-b border-blue-700">
-
           <div className="flex items-center justify-between">
-
             <div>
               <h2 className="font-bold text-2xl">
                 UDAYAN
@@ -144,17 +147,13 @@ export default function Sidebar({
             >
               <FaTimes className="text-lg" />
             </button>
-
           </div>
-
         </div>
 
         {/* Navigation */}
 
         <nav className="flex-1 mt-3 overflow-y-auto">
-
           {menu.map((item) => {
-
             const Icon = item.icon;
 
             const isActive =
@@ -181,24 +180,19 @@ export default function Sidebar({
                   }
                 `}
               >
-
                 <Icon className="text-xl shrink-0" />
 
                 <span className="text-base">
                   {item.name}
                 </span>
-
               </Link>
             );
-
           })}
-
         </nav>
 
         {/* Logout */}
 
         <div className="border-t border-blue-700 p-4">
-
           <button
             className="
               flex
@@ -217,11 +211,8 @@ export default function Sidebar({
             <span>
               Logout
             </span>
-
           </button>
-
         </div>
-
       </aside>
     </>
   );
