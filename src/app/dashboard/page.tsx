@@ -111,11 +111,9 @@ export default function DashboardPage() {
       <ProtectedRoute>
         <AppLayout>
           <div className="flex items-center justify-center h-[70vh]">
-
             <h2 className="text-2xl font-semibold">
               Loading Dashboard...
             </h2>
-
           </div>
         </AppLayout>
       </ProtectedRoute>
@@ -183,7 +181,6 @@ export default function DashboardPage() {
               className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg shadow font-semibold"
             >
               <FaSyncAlt />
-
               Refresh Dashboard
             </button>
 
@@ -191,7 +188,7 @@ export default function DashboardPage() {
 
           {/* Quick Actions */}
 
-          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-5">
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-7 gap-5">
 
             <Link
               href="/collection"
@@ -234,6 +231,17 @@ export default function DashboardPage() {
 
               <span className="font-semibold">
                 Government Grants
+              </span>
+            </Link>
+
+            <Link
+              href="/buildings"
+              className="bg-white rounded-xl shadow hover:shadow-lg transition p-5 flex flex-col items-center text-center"
+            >
+              <FaBuilding className="text-4xl text-orange-600 mb-3" />
+
+              <span className="font-semibold">
+                Buildings
               </span>
             </Link>
 
@@ -320,7 +328,7 @@ export default function DashboardPage() {
 
           </div>
 
-          {/* Subscription KPI Cards */}
+          {/* Subscription KPI */}
 
           <div>
 
