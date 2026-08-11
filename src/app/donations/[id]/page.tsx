@@ -60,6 +60,9 @@ export default function EditDonationPage() {
 
           payment_mode:
             data.payment_mode ?? "",
+
+          purpose:
+            data.purpose ?? "",
         });
       } catch (err) {
         console.error(err);
@@ -141,6 +144,11 @@ export default function EditDonationPage() {
         form.payment_mode ?? ""
       ).trim();
 
+    const purpose =
+      String(
+        form.purpose ?? ""
+      ).trim();
+
     if (!donorName) {
       alert(
         "Donor Name is required."
@@ -155,6 +163,15 @@ export default function EditDonationPage() {
     ) {
       alert(
         "Donation Amount must be greater than zero."
+      );
+
+      return;
+    }
+
+    // Payment Mode is mandatory
+    if (!paymentMode) {
+      alert(
+        "Payment Mode is required."
       );
 
       return;
@@ -195,6 +212,8 @@ export default function EditDonationPage() {
 
           payment_mode:
             paymentMode,
+
+          purpose,
         }
       );
 
@@ -418,10 +437,11 @@ export default function EditDonationPage() {
             <div>
 
               <label className="block font-semibold mb-2">
-                Payment Mode
+                Payment Mode *
               </label>
 
               <select
+                required
                 disabled={!canEdit}
                 value={
                   form.payment_mode
@@ -458,6 +478,37 @@ export default function EditDonationPage() {
                 </option>
 
               </select>
+
+            </div>
+
+            {/* Purpose / Remarks */}
+
+            <div>
+
+              <label className="block font-semibold mb-2">
+                Purpose / Remarks
+                <span className="text-gray-400 font-normal">
+                  {" "}
+                  (Optional)
+                </span>
+              </label>
+
+              <textarea
+                rows={4}
+                disabled={!canEdit}
+                value={
+                  form.purpose ?? ""
+                }
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    purpose:
+                      e.target.value,
+                  })
+                }
+                placeholder="Example: General Donation, Bhog, Decoration, Lighting, Cultural Programme, In memory of..., etc."
+                className="w-full border rounded-lg p-3 resize-y disabled:bg-gray-100 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
 
             </div>
 

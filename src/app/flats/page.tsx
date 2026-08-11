@@ -154,7 +154,7 @@ export default function FlatsPage() {
                     Status
                   </th>
 
-                  <th className="p-4 text-center">
+                  <th className="p-4 text-left">
                     Action
                   </th>
 
@@ -224,11 +224,11 @@ export default function FlatsPage() {
 
                       </td>
 
-                      <td className="p-4 text-center whitespace-nowrap">
+                      <td className="p-4 text-left whitespace-nowrap">
 
                         <Link
                           href={`/flats/${flat.flat_number}`}
-                          className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg shadow transition"
+                          className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg shadow transition"
                         >
                           Edit
                         </Link>

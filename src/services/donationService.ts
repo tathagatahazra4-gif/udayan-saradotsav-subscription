@@ -8,6 +8,7 @@ export async function addDonation(values: {
   mobile_number: string;
   bill_number: string;
   payment_mode: string;
+  purpose: string;
 }) {
   const user = getLoggedInUser();
 
@@ -20,6 +21,7 @@ export async function addDonation(values: {
   const mobileNumber = values.mobile_number.trim();
   const billNumber = values.bill_number.trim();
   const paymentMode = values.payment_mode.trim();
+  const purpose = values.purpose?.trim() ?? "";
 
   if (!donorName) {
     throw new Error("Donor Name is required.");
@@ -28,6 +30,13 @@ export async function addDonation(values: {
   if (!values.amount || values.amount <= 0) {
     throw new Error(
       "Donation amount must be greater than zero."
+    );
+  }
+
+  // Payment Mode is mandatory
+  if (!paymentMode) {
+    throw new Error(
+      "Payment Mode is required."
     );
   }
 
@@ -46,14 +55,23 @@ export async function addDonation(values: {
     .from("donations")
     .insert({
       donor_name: donorName,
+
       amount: values.amount,
+
       flat_number: flatNumber,
+
       mobile_number: mobileNumber,
+
       bill_number: billNumber,
+
       payment_mode: paymentMode,
 
+      purpose: purpose,
+
       collected_by: user.username,
+
       created_by: user.username,
+
       updated_by: user.username,
 
       donation_date:
@@ -125,6 +143,7 @@ export async function updateDonation(
     mobile_number: string;
     bill_number: string;
     payment_mode: string;
+    purpose: string;
   }
 ) {
   const user = getLoggedInUser();
@@ -171,6 +190,12 @@ export async function updateDonation(
   const mobileNumber =
     values.mobile_number.trim();
 
+  const paymentMode =
+    values.payment_mode.trim();
+
+  const purpose =
+    values.purpose?.trim() ?? "";
+
   if (!donorName) {
     throw new Error(
       "Donor Name is required."
@@ -183,6 +208,13 @@ export async function updateDonation(
   ) {
     throw new Error(
       "Donation amount must be greater than zero."
+    );
+  }
+
+  // Payment Mode is mandatory
+  if (!paymentMode) {
+    throw new Error(
+      "Payment Mode is required."
     );
   }
 
@@ -216,9 +248,12 @@ export async function updateDonation(
         values.bill_number.trim(),
 
       payment_mode:
-        values.payment_mode.trim(),
+        paymentMode,
 
-      // Keep the original creator unchanged
+      purpose:
+        purpose,
+
+      // Keep original creator unchanged
       updated_by:
         user.username,
 

@@ -38,14 +38,12 @@ export default function BuildingDetailsPage() {
           building as string
         );
 
-        // Load flats
         const data = await getBuildingFlats(
           buildingName
         );
 
         setFlats(data);
 
-        // Load building comment
         const commentData =
           await getBuildingComment(
             buildingName
@@ -452,7 +450,7 @@ export default function BuildingDetailsPage() {
                     Amount
                   </th>
 
-                  <th className="p-4 text-center">
+                  <th className="p-4 text-left">
                     Action
                   </th>
 
@@ -516,13 +514,13 @@ export default function BuildingDetailsPage() {
                         }
                       </td>
 
-                      <td className="p-4 text-center whitespace-nowrap">
+                      <td className="p-4 text-left whitespace-nowrap">
 
                         <Link
                           href={`/flats/${flat.flat_number}?fromBuilding=${encodeURIComponent(
                             building as string
                           )}`}
-                          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+                          className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
                         >
                           Edit
                         </Link>

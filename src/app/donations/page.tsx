@@ -5,8 +5,11 @@ import Link from "next/link";
 
 import {
   FaDonate,
-  FaUsers,
   FaEdit,
+  FaMoneyBill,
+  FaMobileAlt,
+  FaUniversity,
+  FaMoneyCheckAlt,
 } from "react-icons/fa";
 
 import AppLayout from "@/components/layout/AppLayout";
@@ -30,14 +33,14 @@ export default function DonationsPage() {
     mobile_number: "",
     bill_number: "",
     payment_mode: "",
+    purpose: "",
   });
 
   async function loadDonations() {
     try {
       setLoading(true);
 
-      const data =
-        await getDonations();
+      const data = await getDonations();
 
       setDonations(data);
     } catch (err) {
@@ -54,7 +57,9 @@ export default function DonationsPage() {
 
   async function handleSave() {
     if (!form.donor_name.trim()) {
-      return alert("Donor Name is required.");
+      return alert(
+        "Donor Name is required."
+      );
     }
 
     if (
@@ -66,9 +71,18 @@ export default function DonationsPage() {
       );
     }
 
+    // Payment Mode is mandatory
+    if (!form.payment_mode) {
+      return alert(
+        "Payment Mode is required."
+      );
+    }
+
     if (
       form.mobile_number &&
-      !/^\d{10}$/.test(form.mobile_number)
+      !/^\d{10}$/.test(
+        form.mobile_number
+      )
     ) {
       return alert(
         "Mobile Number must contain exactly 10 digits."
@@ -82,7 +96,8 @@ export default function DonationsPage() {
         donor_name:
           form.donor_name.trim(),
 
-        amount: Number(form.amount),
+        amount:
+          Number(form.amount),
 
         flat_number:
           form.flat_number.trim(),
@@ -95,6 +110,9 @@ export default function DonationsPage() {
 
         payment_mode:
           form.payment_mode,
+
+        purpose:
+          form.purpose,
       });
 
       alert(
@@ -108,14 +126,15 @@ export default function DonationsPage() {
         mobile_number: "",
         bill_number: "",
         payment_mode: "",
+        purpose: "",
       });
 
-      loadDonations();
+      await loadDonations();
     } catch (err: any) {
       console.error(err);
 
       alert(
-        err.message ||
+        err?.message ||
           "Failed to save donation."
       );
     } finally {
@@ -124,15 +143,87 @@ export default function DonationsPage() {
   }
 
   const totalAmount = donations.reduce(
-    (sum, d) =>
-      sum + Number(d.amount || 0),
+    (sum, donation) =>
+      sum +
+      Number(
+        donation.amount || 0
+      ),
     0
   );
+
+  const cashDonation = donations
+    .filter(
+      (donation) =>
+        donation.payment_mode === "Cash"
+    )
+    .reduce(
+      (sum, donation) =>
+        sum +
+        Number(
+          donation.amount || 0
+        ),
+      0
+    );
+
+  const upiDonation = donations
+    .filter(
+      (donation) =>
+        donation.payment_mode === "UPI"
+    )
+    .reduce(
+      (sum, donation) =>
+        sum +
+        Number(
+          donation.amount || 0
+        ),
+      0
+    );
+
+  const bankTransferDonation = donations
+    .filter(
+      (donation) =>
+        donation.payment_mode ===
+        "Bank Transfer"
+    )
+    .reduce(
+      (sum, donation) =>
+        sum +
+        Number(
+          donation.amount || 0
+        ),
+      0
+    );
+
+  const chequeDonation = donations
+    .filter(
+      (donation) =>
+        donation.payment_mode ===
+        "Cheque"
+    )
+    .reduce(
+      (sum, donation) =>
+        sum +
+        Number(
+          donation.amount || 0
+        ),
+      0
+    );
+
+  const formatAmount = (
+    amount: number
+  ) =>
+    Number(
+      amount || 0
+    ).toLocaleString(
+      "en-IN"
+    );
 
   return (
     <ProtectedRoute>
       <AppLayout>
         <div className="space-y-8">
+
+          {/* Header */}
 
           <div>
             <h1 className="text-4xl font-bold text-blue-900">
@@ -140,51 +231,154 @@ export default function DonationsPage() {
             </h1>
 
             <p className="text-gray-500 mt-2">
-              Collect Puja donations and
-              maintain records.
+              Collect Puja donations and maintain records.
             </p>
           </div>
 
-          {/* Summary */}
+          {/* Donation Summary */}
 
-          <div className="grid md:grid-cols-2 gap-6">
+          <div>
 
-            <div className="bg-white rounded-2xl shadow-lg border p-6 flex justify-between items-center">
+            <h2 className="text-2xl font-bold text-gray-800 mb-5">
+              Donation Collection Summary
+            </h2>
 
-              <div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-5">
 
-                <p className="text-gray-500">
-                  Total Donations
-                </p>
+              {/* Total */}
 
-                <h2 className="text-3xl font-bold text-green-700 mt-2">
-                  ₹
-                  {totalAmount.toLocaleString(
-                    "en-IN"
-                  )}
-                </h2>
+              <div className="bg-white rounded-2xl shadow-lg border p-6">
 
-              </div>
+                <div className="flex items-center justify-between gap-4">
 
-              <FaDonate className="text-4xl text-green-600" />
+                  <div>
 
-            </div>
+                    <p className="text-gray-500">
+                      Total Donations
+                    </p>
 
-            <div className="bg-white rounded-2xl shadow-lg border p-6 flex justify-between items-center">
+                    <h2 className="text-3xl font-bold text-green-700 mt-2">
+                      ₹
+                      {formatAmount(
+                        totalAmount
+                      )}
+                    </h2>
 
-              <div>
+                  </div>
 
-                <p className="text-gray-500">
-                  Total Donors
-                </p>
+                  <FaDonate className="text-4xl text-green-600" />
 
-                <h2 className="text-3xl font-bold text-blue-700 mt-2">
-                  {donations.length}
-                </h2>
+                </div>
 
               </div>
 
-              <FaUsers className="text-4xl text-blue-600" />
+              {/* Cash */}
+
+              <div className="bg-white rounded-2xl shadow-lg border p-6">
+
+                <div className="flex items-center justify-between gap-4">
+
+                  <div>
+
+                    <p className="text-gray-500">
+                      Cash Donations
+                    </p>
+
+                    <h2 className="text-3xl font-bold text-emerald-700 mt-2">
+                      ₹
+                      {formatAmount(
+                        cashDonation
+                      )}
+                    </h2>
+
+                  </div>
+
+                  <FaMoneyBill className="text-4xl text-emerald-600" />
+
+                </div>
+
+              </div>
+
+              {/* UPI */}
+
+              <div className="bg-white rounded-2xl shadow-lg border p-6">
+
+                <div className="flex items-center justify-between gap-4">
+
+                  <div>
+
+                    <p className="text-gray-500">
+                      UPI Donations
+                    </p>
+
+                    <h2 className="text-3xl font-bold text-cyan-700 mt-2">
+                      ₹
+                      {formatAmount(
+                        upiDonation
+                      )}
+                    </h2>
+
+                  </div>
+
+                  <FaMobileAlt className="text-4xl text-cyan-600" />
+
+                </div>
+
+              </div>
+
+              {/* Bank */}
+
+              <div className="bg-white rounded-2xl shadow-lg border p-6">
+
+                <div className="flex items-center justify-between gap-4">
+
+                  <div>
+
+                    <p className="text-gray-500">
+                      Bank Transfer
+                    </p>
+
+                    <h2 className="text-3xl font-bold text-blue-700 mt-2">
+                      ₹
+                      {formatAmount(
+                        bankTransferDonation
+                      )}
+                    </h2>
+
+                  </div>
+
+                  <FaUniversity className="text-4xl text-blue-600" />
+
+                </div>
+
+              </div>
+
+              {/* Cheque */}
+
+              <div className="bg-white rounded-2xl shadow-lg border p-6">
+
+                <div className="flex items-center justify-between gap-4">
+
+                  <div>
+
+                    <p className="text-gray-500">
+                      Cheque Donations
+                    </p>
+
+                    <h2 className="text-3xl font-bold text-purple-700 mt-2">
+                      ₹
+                      {formatAmount(
+                        chequeDonation
+                      )}
+                    </h2>
+
+                  </div>
+
+                  <FaMoneyCheckAlt className="text-4xl text-purple-600" />
+
+                </div>
+
+              </div>
 
             </div>
 
@@ -200,6 +394,8 @@ export default function DonationsPage() {
 
             <div className="grid md:grid-cols-2 gap-5">
 
+              {/* Donor Name */}
+
               <div>
 
                 <label className="font-semibold block mb-2">
@@ -207,7 +403,7 @@ export default function DonationsPage() {
                 </label>
 
                 <input
-                  className="w-full border rounded-lg p-3"
+                  className="w-full border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={
                     form.donor_name
                   }
@@ -218,9 +414,12 @@ export default function DonationsPage() {
                         e.target.value,
                     })
                   }
+                  placeholder="Enter donor name"
                 />
 
               </div>
+
+              {/* Amount */}
 
               <div>
 
@@ -230,8 +429,11 @@ export default function DonationsPage() {
 
                 <input
                   type="number"
-                  className="w-full border rounded-lg p-3"
-                  value={form.amount}
+                  min="1"
+                  className="w-full border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={
+                    form.amount
+                  }
                   onChange={(e) =>
                     setForm({
                       ...form,
@@ -239,18 +441,25 @@ export default function DonationsPage() {
                         e.target.value,
                     })
                   }
+                  placeholder="Enter donation amount"
                 />
 
               </div>
+
+              {/* Flat Number */}
 
               <div>
 
                 <label className="font-semibold block mb-2">
                   Flat Number
+                  <span className="text-gray-400 font-normal">
+                    {" "}
+                    (Optional)
+                  </span>
                 </label>
 
                 <input
-                  className="w-full border rounded-lg p-3"
+                  className="w-full border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={
                     form.flat_number
                   }
@@ -261,19 +470,28 @@ export default function DonationsPage() {
                         e.target.value.toUpperCase(),
                     })
                   }
+                  placeholder="Enter flat number"
                 />
 
               </div>
+
+              {/* Mobile */}
 
               <div>
 
                 <label className="font-semibold block mb-2">
                   Mobile Number
+                  <span className="text-gray-400 font-normal">
+                    {" "}
+                    (Optional)
+                  </span>
                 </label>
 
                 <input
+                  type="tel"
+                  inputMode="numeric"
                   maxLength={10}
-                  className="w-full border rounded-lg p-3"
+                  className="w-full border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={
                     form.mobile_number
                   }
@@ -286,21 +504,31 @@ export default function DonationsPage() {
                             /\D/g,
                             ""
                           )
-                          .slice(0, 10),
+                          .slice(
+                            0,
+                            10
+                          ),
                     })
                   }
+                  placeholder="Enter 10 digit mobile number"
                 />
 
               </div>
+
+              {/* Bill Number */}
 
               <div>
 
                 <label className="font-semibold block mb-2">
                   Bill Number
+                  <span className="text-gray-400 font-normal">
+                    {" "}
+                    (Optional)
+                  </span>
                 </label>
 
                 <input
-                  className="w-full border rounded-lg p-3"
+                  className="w-full border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={
                     form.bill_number
                   }
@@ -311,18 +539,22 @@ export default function DonationsPage() {
                         e.target.value,
                     })
                   }
+                  placeholder="Enter bill number"
                 />
 
               </div>
 
+              {/* Payment Mode */}
+
               <div>
 
                 <label className="font-semibold block mb-2">
-                  Payment Mode
+                  Payment Mode *
                 </label>
 
                 <select
-                  className="w-full border rounded-lg p-3"
+                  required
+                  className="w-full border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={
                     form.payment_mode
                   }
@@ -334,9 +566,8 @@ export default function DonationsPage() {
                     })
                   }
                 >
-
                   <option value="">
-                    Select
+                    Select Payment Mode
                   </option>
 
                   <option value="Cash">
@@ -354,17 +585,51 @@ export default function DonationsPage() {
                   <option value="Cheque">
                     Cheque
                   </option>
-
                 </select>
+
+              </div>
+
+              {/* Purpose */}
+
+              <div className="md:col-span-2">
+
+                <label className="font-semibold block mb-2">
+                  Purpose / Remarks
+                  <span className="text-gray-400 font-normal">
+                    {" "}
+                    (Optional)
+                  </span>
+                </label>
+
+                <textarea
+                  rows={4}
+                  value={
+                    form.purpose
+                  }
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      purpose:
+                        e.target.value,
+                    })
+                  }
+                  placeholder="Example: General Donation, Bhog, Decoration, Lighting, Cultural Programme, In memory of..., etc."
+                  className="w-full border rounded-lg p-3 resize-y focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
 
               </div>
 
             </div>
 
             <button
-              onClick={handleSave}
-              disabled={saving}
-              className="mt-8 w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-xl font-semibold"
+              type="button"
+              onClick={
+                handleSave
+              }
+              disabled={
+                saving
+              }
+              className="mt-8 w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white py-4 rounded-xl font-semibold"
             >
               {saving
                 ? "Saving..."
@@ -377,7 +642,7 @@ export default function DonationsPage() {
 
           <div className="bg-white rounded-2xl shadow-lg border overflow-x-auto">
 
-            <table className="min-w-full">
+            <table className="min-w-[1100px] w-full">
 
               <thead className="bg-blue-900 text-white">
 
@@ -403,6 +668,10 @@ export default function DonationsPage() {
                     Bill No.
                   </th>
 
+                  <th className="p-4 text-left">
+                    Purpose / Remarks
+                  </th>
+
                   <th className="p-4 text-center">
                     Collected By
                   </th>
@@ -422,7 +691,7 @@ export default function DonationsPage() {
                   <tr>
 
                     <td
-                      colSpan={7}
+                      colSpan={8}
                       className="text-center py-10"
                     >
                       Loading...
@@ -430,13 +699,12 @@ export default function DonationsPage() {
 
                   </tr>
 
-                ) : donations.length ===
-                  0 ? (
+                ) : donations.length === 0 ? (
 
                   <tr>
 
                     <td
-                      colSpan={7}
+                      colSpan={8}
                       className="text-center py-10 text-gray-500"
                     >
                       No donations found.
@@ -450,7 +718,9 @@ export default function DonationsPage() {
                     (donation) => (
 
                       <tr
-                        key={donation.id}
+                        key={
+                          donation.id
+                        }
                         className="border-b hover:bg-blue-50"
                       >
 
@@ -460,35 +730,40 @@ export default function DonationsPage() {
                           }
                         </td>
 
-                        <td className="p-4">
+                        <td className="p-4 whitespace-nowrap">
                           {donation.flat_number ||
                             "-"}
                         </td>
 
-                        <td className="p-4 text-center font-bold text-green-700">
+                        <td className="p-4 text-center font-bold text-green-700 whitespace-nowrap">
                           ₹
-                          {Number(
+                          {formatAmount(
                             donation.amount
-                          ).toLocaleString(
-                            "en-IN"
                           )}
                         </td>
 
-                        <td className="p-4 text-center">
+                        <td className="p-4 text-center whitespace-nowrap">
                           {donation.payment_mode ||
                             "-"}
                         </td>
 
-                        <td className="p-4 text-center">
+                        <td className="p-4 text-center whitespace-nowrap">
                           {donation.bill_number ||
                             "-"}
                         </td>
 
-                        <td className="p-4 text-center">
-                          {donation.created_by}
+                        <td className="p-4 max-w-xs whitespace-pre-wrap">
+                          {donation.purpose ||
+                            "-"}
                         </td>
 
-                        <td className="p-4 text-center">
+                        <td className="p-4 text-center whitespace-nowrap">
+                          {donation.created_by ||
+                            donation.collected_by ||
+                            "-"}
+                        </td>
+
+                        <td className="p-4 text-center whitespace-nowrap">
 
                           <Link
                             href={`/donations/${donation.id}`}
