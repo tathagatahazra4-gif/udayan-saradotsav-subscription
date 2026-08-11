@@ -61,20 +61,71 @@ export async function getMyCollections() {
 
   const collections = data ?? [];
 
-  const totalCollection = collections.reduce(
-    (sum, flat) =>
-      sum +
-      Number(
-        flat.subscription_amount || 0
-      ),
-    0
-  );
+  // ============================================
+  // TOTAL COLLECTION
+  // ============================================
+
+  const totalCollection =
+    collections.reduce(
+      (sum, flat) =>
+        sum +
+        Number(
+          flat.subscription_amount || 0
+        ),
+      0
+    );
+
+  // ============================================
+  // CASH COLLECTION
+  // ============================================
+
+  const cashCollection =
+    collections
+      .filter(
+        (flat) =>
+          flat.payment_mode === "Cash"
+      )
+      .reduce(
+        (sum, flat) =>
+          sum +
+          Number(
+            flat.subscription_amount || 0
+          ),
+        0
+      );
+
+  // ============================================
+  // UPI COLLECTION
+  // ============================================
+
+  const upiCollection =
+    collections
+      .filter(
+        (flat) =>
+          flat.payment_mode === "UPI"
+      )
+      .reduce(
+        (sum, flat) =>
+          sum +
+          Number(
+            flat.subscription_amount || 0
+          ),
+        0
+      );
 
   return {
     username: user.username,
+
     collections,
-    totalFlats: collections.length,
+
+    totalFlats:
+      collections.length,
+
     totalCollection,
+
+    cashCollection,
+
+    upiCollection,
   };
 }
 
@@ -106,7 +157,8 @@ export async function getVolunteerCollectionReport() {
       return;
     }
 
-    const volunteer = row.collected_by;
+    const volunteer =
+      row.collected_by;
 
     if (!summary[volunteer]) {
       summary[volunteer] = {
@@ -116,14 +168,18 @@ export async function getVolunteerCollectionReport() {
       };
     }
 
-    summary[volunteer].amount += Number(
-      row.subscription_amount || 0
-    );
+    summary[volunteer].amount +=
+      Number(
+        row.subscription_amount || 0
+      );
 
     summary[volunteer].flats += 1;
   });
 
-  return Object.values(summary).sort(
-    (a, b) => b.amount - a.amount
+  return Object.values(
+    summary
+  ).sort(
+    (a, b) =>
+      b.amount - a.amount
   );
 }

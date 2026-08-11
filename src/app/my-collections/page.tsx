@@ -12,6 +12,8 @@ import {
   FaHome,
   FaSearch,
   FaEdit,
+  FaMoneyBill,
+  FaMobileAlt,
 } from "react-icons/fa";
 
 import AppLayout from "@/components/layout/AppLayout";
@@ -48,6 +50,16 @@ export default function MyCollectionsPage() {
     setTotalCollection,
   ] = useState(0);
 
+  const [
+    cashCollection,
+    setCashCollection,
+  ] = useState(0);
+
+  const [
+    upiCollection,
+    setUpiCollection,
+  ] = useState(0);
+
   const [search, setSearch] =
     useState("");
 
@@ -66,7 +78,9 @@ export default function MyCollectionsPage() {
         const result =
           await getMyCollections();
 
-        setUsername(result.username);
+        setUsername(
+          result.username
+        );
 
         setCollections(
           result.collections
@@ -78,6 +92,14 @@ export default function MyCollectionsPage() {
 
         setTotalCollection(
           result.totalCollection
+        );
+
+        setCashCollection(
+          result.cashCollection ?? 0
+        );
+
+        setUpiCollection(
+          result.upiCollection ?? 0
         );
       } catch (err: any) {
         console.error(
@@ -122,14 +144,22 @@ export default function MyCollectionsPage() {
           .includes(keyword) ||
         (flat.transaction_id || "")
           .toLowerCase()
+          .includes(keyword) ||
+        (flat.payment_mode || "")
+          .toLowerCase()
           .includes(keyword)
       );
     });
 
   const formatAmount = (
-    amount: number | string | null
+    amount:
+      | number
+      | string
+      | null
   ) =>
-    Number(amount || 0).toLocaleString(
+    Number(
+      amount || 0
+    ).toLocaleString(
       "en-IN"
     );
 
@@ -142,11 +172,14 @@ export default function MyCollectionsPage() {
 
     return new Date(
       `${date}T00:00:00`
-    ).toLocaleDateString("en-IN", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
+    ).toLocaleDateString(
+      "en-IN",
+      {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      }
+    );
   };
 
   if (loading) {
@@ -154,9 +187,11 @@ export default function MyCollectionsPage() {
       <ProtectedRoute>
         <AppLayout>
           <div className="flex items-center justify-center h-[70vh]">
+
             <h2 className="text-2xl font-semibold">
               Loading My Collections...
             </h2>
+
           </div>
         </AppLayout>
       </ProtectedRoute>
@@ -166,6 +201,7 @@ export default function MyCollectionsPage() {
   return (
     <ProtectedRoute>
       <AppLayout>
+
         <div className="space-y-7">
 
           {/* Page Header */}
@@ -173,6 +209,7 @@ export default function MyCollectionsPage() {
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
 
             <div>
+
               <h1 className="text-4xl font-bold text-blue-900">
                 My Collections
               </h1>
@@ -185,6 +222,7 @@ export default function MyCollectionsPage() {
                 </span>
                 .
               </p>
+
             </div>
 
             <div className="relative w-full lg:w-96">
@@ -199,7 +237,7 @@ export default function MyCollectionsPage() {
                     e.target.value
                   )
                 }
-                placeholder="Search flat, owner, mobile..."
+                placeholder="Search flat, owner, mobile, mode..."
                 className="w-full border rounded-xl pl-11 pr-4 py-3 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
 
@@ -210,20 +248,25 @@ export default function MyCollectionsPage() {
           {/* Error */}
 
           {error && (
+
             <div className="bg-red-50 border border-red-300 text-red-700 rounded-xl p-4">
               {error}
             </div>
+
           )}
 
           {/* Summary Cards */}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
+
+            {/* Flats Collected */}
 
             <div className="bg-white rounded-2xl shadow-lg border p-6">
 
               <div className="flex items-center justify-between">
 
                 <div>
+
                   <p className="text-gray-500 font-medium">
                     Flats Collected
                   </p>
@@ -231,6 +274,7 @@ export default function MyCollectionsPage() {
                   <h2 className="text-4xl font-bold text-blue-900 mt-2">
                     {totalFlats}
                   </h2>
+
                 </div>
 
                 <div className="bg-blue-100 text-blue-700 text-3xl p-5 rounded-2xl">
@@ -241,25 +285,87 @@ export default function MyCollectionsPage() {
 
             </div>
 
+            {/* Total Collection */}
+
             <div className="bg-white rounded-2xl shadow-lg border p-6">
 
               <div className="flex items-center justify-between">
 
                 <div>
+
                   <p className="text-gray-500 font-medium">
                     Total Collection
                   </p>
 
                   <h2 className="text-4xl font-bold text-green-700 mt-2">
                     ₹
-                    {totalCollection.toLocaleString(
-                      "en-IN"
+                    {formatAmount(
+                      totalCollection
                     )}
                   </h2>
+
                 </div>
 
                 <div className="bg-green-100 text-green-700 text-3xl p-5 rounded-2xl">
                   <FaRupeeSign />
+                </div>
+
+              </div>
+
+            </div>
+
+            {/* Cash Collection */}
+
+            <div className="bg-white rounded-2xl shadow-lg border p-6">
+
+              <div className="flex items-center justify-between">
+
+                <div>
+
+                  <p className="text-gray-500 font-medium">
+                    Cash Collection
+                  </p>
+
+                  <h2 className="text-4xl font-bold text-emerald-700 mt-2">
+                    ₹
+                    {formatAmount(
+                      cashCollection
+                    )}
+                  </h2>
+
+                </div>
+
+                <div className="bg-emerald-100 text-emerald-700 text-3xl p-5 rounded-2xl">
+                  <FaMoneyBill />
+                </div>
+
+              </div>
+
+            </div>
+
+            {/* UPI Collection */}
+
+            <div className="bg-white rounded-2xl shadow-lg border p-6">
+
+              <div className="flex items-center justify-between">
+
+                <div>
+
+                  <p className="text-gray-500 font-medium">
+                    UPI Collection
+                  </p>
+
+                  <h2 className="text-4xl font-bold text-cyan-700 mt-2">
+                    ₹
+                    {formatAmount(
+                      upiCollection
+                    )}
+                  </h2>
+
+                </div>
+
+                <div className="bg-cyan-100 text-cyan-700 text-3xl p-5 rounded-2xl">
+                  <FaMobileAlt />
                 </div>
 
               </div>
@@ -274,15 +380,21 @@ export default function MyCollectionsPage() {
 
             <p className="text-gray-500">
               Showing{" "}
+
               <span className="font-bold text-blue-900">
                 {
                   filteredCollections.length
                 }
-              </span>{" "}
+              </span>
+
+              {" "}
               of{" "}
+
               <span className="font-bold text-blue-900">
                 {totalFlats}
-              </span>{" "}
+              </span>
+
+              {" "}
               collected flats
             </p>
 
@@ -414,6 +526,7 @@ export default function MyCollectionsPage() {
                               className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg shadow transition"
                             >
                               <FaEdit />
+
                               Edit
                             </Link>
 
@@ -435,6 +548,7 @@ export default function MyCollectionsPage() {
           </div>
 
         </div>
+
       </AppLayout>
     </ProtectedRoute>
   );

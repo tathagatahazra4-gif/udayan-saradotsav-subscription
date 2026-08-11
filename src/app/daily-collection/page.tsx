@@ -13,6 +13,8 @@ import {
   FaRupeeSign,
   FaHome,
   FaUsers,
+  FaMoneyBill,
+  FaMobileAlt,
 } from "react-icons/fa";
 
 import { getDailyCollection } from "@/services/dailyCollectionService";
@@ -41,6 +43,16 @@ export default function DailyCollectionPage() {
   const [
     totalCollection,
     setTotalCollection,
+  ] = useState(0);
+
+  const [
+    cashCollection,
+    setCashCollection,
+  ] = useState(0);
+
+  const [
+    upiCollection,
+    setUpiCollection,
   ] = useState(0);
 
   const [
@@ -79,6 +91,14 @@ export default function DailyCollectionPage() {
 
         setTotalCollection(
           result.totalCollection
+        );
+
+        setCashCollection(
+          result.cashCollection ?? 0
+        );
+
+        setUpiCollection(
+          result.upiCollection ?? 0
         );
 
         setTotalFlats(
@@ -236,7 +256,9 @@ export default function DailyCollectionPage() {
 
           {/* Summary Cards */}
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-5">
+
+            {/* Total Collection */}
 
             <div className="bg-white rounded-2xl shadow-lg border p-6">
 
@@ -263,6 +285,62 @@ export default function DailyCollectionPage() {
 
             </div>
 
+            {/* Cash Collection */}
+
+            <div className="bg-white rounded-2xl shadow-lg border p-6">
+
+              <div className="flex justify-between items-center">
+
+                <div>
+
+                  <p className="text-gray-500">
+                    Cash Collection
+                  </p>
+
+                  <h2 className="text-3xl font-bold text-emerald-700 mt-2">
+                    ₹
+                    {formatAmount(
+                      cashCollection
+                    )}
+                  </h2>
+
+                </div>
+
+                <FaMoneyBill className="text-4xl text-emerald-600" />
+
+              </div>
+
+            </div>
+
+            {/* UPI Collection */}
+
+            <div className="bg-white rounded-2xl shadow-lg border p-6">
+
+              <div className="flex justify-between items-center">
+
+                <div>
+
+                  <p className="text-gray-500">
+                    UPI Collection
+                  </p>
+
+                  <h2 className="text-3xl font-bold text-cyan-700 mt-2">
+                    ₹
+                    {formatAmount(
+                      upiCollection
+                    )}
+                  </h2>
+
+                </div>
+
+                <FaMobileAlt className="text-4xl text-cyan-600" />
+
+              </div>
+
+            </div>
+
+            {/* Flats Paid */}
+
             <div className="bg-white rounded-2xl shadow-lg border p-6">
 
               <div className="flex justify-between items-center">
@@ -286,6 +364,8 @@ export default function DailyCollectionPage() {
               </div>
 
             </div>
+
+            {/* Volunteers */}
 
             <div className="bg-white rounded-2xl shadow-lg border p-6">
 
