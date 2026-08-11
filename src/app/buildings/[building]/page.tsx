@@ -430,6 +430,10 @@ export default function BuildingDetailsPage() {
 
                 <tr>
 
+                  <th className="p-4 text-center">
+                    Action
+                  </th>
+
                   <th className="p-4 text-left">
                     Flat
                   </th>
@@ -448,10 +452,6 @@ export default function BuildingDetailsPage() {
 
                   <th className="p-4 text-center">
                     Amount
-                  </th>
-
-                  <th className="p-4 text-left">
-                    Action
                   </th>
 
                   <th className="p-4 text-left min-w-[280px]">
@@ -474,21 +474,44 @@ export default function BuildingDetailsPage() {
                       className="border-t hover:bg-gray-50"
                     >
 
+                      {/* Action */}
+
+                      <td className="p-4 text-center whitespace-nowrap">
+
+                        <Link
+                          href={`/flats/${flat.flat_number}?fromBuilding=${encodeURIComponent(
+                            building as string
+                          )}`}
+                          className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+                        >
+                          Edit
+                        </Link>
+
+                      </td>
+
+                      {/* Flat */}
+
                       <td className="p-4 font-semibold whitespace-nowrap">
                         {
                           flat.flat_number
                         }
                       </td>
 
+                      {/* Owner */}
+
                       <td className="p-4">
                         {flat.owner_name ||
                           "-"}
                       </td>
 
+                      {/* Mobile */}
+
                       <td className="p-4 whitespace-nowrap">
                         {flat.mobile_number ||
                           "-"}
                       </td>
+
+                      {/* Status */}
 
                       <td className="p-4 text-center">
 
@@ -507,6 +530,8 @@ export default function BuildingDetailsPage() {
 
                       </td>
 
+                      {/* Amount */}
+
                       <td className="p-4 text-center whitespace-nowrap">
                         ₹
                         {
@@ -514,18 +539,7 @@ export default function BuildingDetailsPage() {
                         }
                       </td>
 
-                      <td className="p-4 text-left whitespace-nowrap">
-
-                        <Link
-                          href={`/flats/${flat.flat_number}?fromBuilding=${encodeURIComponent(
-                            building as string
-                          )}`}
-                          className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
-                        >
-                          Edit
-                        </Link>
-
-                      </td>
+                      {/* Comments */}
 
                       <td className="p-4 min-w-[280px] whitespace-normal align-top text-gray-700">
                         {flat.comments?.trim()

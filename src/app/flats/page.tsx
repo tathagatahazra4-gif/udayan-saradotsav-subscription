@@ -130,6 +130,10 @@ export default function FlatsPage() {
 
                 <tr>
 
+                  <th className="p-4 text-center">
+                    Action
+                  </th>
+
                   <th className="p-4 text-left">
                     Flat
                   </th>
@@ -152,10 +156,6 @@ export default function FlatsPage() {
 
                   <th className="p-4 text-center">
                     Status
-                  </th>
-
-                  <th className="p-4 text-left">
-                    Action
                   </th>
 
                   <th className="p-4 text-left min-w-[280px]">
@@ -190,25 +190,50 @@ export default function FlatsPage() {
                       className="border-b hover:bg-blue-50 transition"
                     >
 
+                      {/* Action */}
+
+                      <td className="p-4 text-center whitespace-nowrap">
+
+                        <Link
+                          href={`/flats/${flat.flat_number}`}
+                          className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg shadow transition"
+                        >
+                          Edit
+                        </Link>
+
+                      </td>
+
+                      {/* Flat */}
+
                       <td className="p-4 font-semibold whitespace-nowrap">
                         {flat.flat_number}
                       </td>
+
+                      {/* Owner */}
 
                       <td className="p-4">
                         {flat.owner_name || "-"}
                       </td>
 
+                      {/* Mobile */}
+
                       <td className="p-4 whitespace-nowrap">
                         {flat.mobile_number || "-"}
                       </td>
+
+                      {/* Members */}
 
                       <td className="p-4 text-center">
                         {flat.family_members}
                       </td>
 
+                      {/* Subscription */}
+
                       <td className="p-4 text-center font-semibold whitespace-nowrap">
                         ₹{flat.subscription_amount}
                       </td>
+
+                      {/* Status */}
 
                       <td className="p-4 text-center">
 
@@ -224,16 +249,7 @@ export default function FlatsPage() {
 
                       </td>
 
-                      <td className="p-4 text-left whitespace-nowrap">
-
-                        <Link
-                          href={`/flats/${flat.flat_number}`}
-                          className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg shadow transition"
-                        >
-                          Edit
-                        </Link>
-
-                      </td>
+                      {/* Comments */}
 
                       <td className="p-4 min-w-[280px] whitespace-normal align-top text-gray-700">
 
