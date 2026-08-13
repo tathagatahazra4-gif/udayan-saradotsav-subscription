@@ -14,6 +14,7 @@ import {
   FaEdit,
   FaMoneyBill,
   FaMobileAlt,
+  FaCalendarDay,
 } from "react-icons/fa";
 
 import AppLayout from "@/components/layout/AppLayout";
@@ -26,7 +27,10 @@ interface CollectionFlat {
   owner_name: string | null;
   mobile_number: string | null;
   family_members: number | null;
-  subscription_amount: number | string | null;
+  subscription_amount:
+    | number
+    | string
+    | null;
   payment_mode: string | null;
   receipt_number: string | null;
   transaction_id: string | null;
@@ -35,14 +39,50 @@ interface CollectionFlat {
   collected_by: string | null;
 }
 
-export default function MyCollectionsPage() {
-  const [collections, setCollections] =
-    useState<CollectionFlat[]>([]);
+function getTodayLocalDate() {
+  const now = new Date();
 
-  const [username, setUsername] =
+  const year =
+    now.getFullYear();
+
+  const month =
+    String(
+      now.getMonth() + 1
+    ).padStart(
+      2,
+      "0"
+    );
+
+  const day =
+    String(
+      now.getDate()
+    ).padStart(
+      2,
+      "0"
+    );
+
+  return `${year}-${month}-${day}`;
+}
+
+export default function MyCollectionsPage() {
+  const [
+    collections,
+    setCollections,
+  ] =
+    useState<CollectionFlat[]>(
+      []
+    );
+
+  const [
+    username,
+    setUsername,
+  ] =
     useState("");
 
-  const [totalFlats, setTotalFlats] =
+  const [
+    totalFlats,
+    setTotalFlats,
+  ] =
     useState(0);
 
   const [
@@ -60,14 +100,31 @@ export default function MyCollectionsPage() {
     setUpiCollection,
   ] = useState(0);
 
-  const [search, setSearch] =
+  const [
+    search,
+    setSearch,
+  ] =
     useState("");
 
-  const [loading, setLoading] =
+  const [
+    loading,
+    setLoading,
+  ] =
     useState(true);
 
-  const [error, setError] =
+  const [
+    error,
+    setError,
+  ] =
     useState("");
+
+  const [
+    selectedDate,
+    setSelectedDate,
+  ] =
+    useState(
+      getTodayLocalDate()
+    );
 
   useEffect(() => {
     async function loadCollections() {
@@ -120,36 +177,136 @@ export default function MyCollectionsPage() {
   }, []);
 
   const filteredCollections =
-    collections.filter((flat) => {
-      const keyword = search
-        .trim()
-        .toLowerCase();
+    collections.filter(
+      (flat) => {
+        const keyword =
+          search
+            .trim()
+            .toLowerCase();
 
-      if (!keyword) {
-        return true;
+        if (!keyword) {
+          return true;
+        }
+
+        return (
+          flat.flat_number
+            .toLowerCase()
+            .includes(
+              keyword
+            ) ||
+
+          (
+            flat.owner_name ||
+            ""
+          )
+            .toLowerCase()
+            .includes(
+              keyword
+            ) ||
+
+          (
+            flat.mobile_number ||
+            ""
+          )
+            .toLowerCase()
+            .includes(
+              keyword
+            ) ||
+
+          (
+            flat.receipt_number ||
+            ""
+          )
+            .toLowerCase()
+            .includes(
+              keyword
+            ) ||
+
+          (
+            flat.transaction_id ||
+            ""
+          )
+            .toLowerCase()
+            .includes(
+              keyword
+            ) ||
+
+          (
+            flat.payment_mode ||
+            ""
+          )
+            .toLowerCase()
+            .includes(
+              keyword
+            )
+        );
       }
+    );
 
-      return (
-        flat.flat_number
-          .toLowerCase()
-          .includes(keyword) ||
-        (flat.owner_name || "")
-          .toLowerCase()
-          .includes(keyword) ||
-        (flat.mobile_number || "")
-          .toLowerCase()
-          .includes(keyword) ||
-        (flat.receipt_number || "")
-          .toLowerCase()
-          .includes(keyword) ||
-        (flat.transaction_id || "")
-          .toLowerCase()
-          .includes(keyword) ||
-        (flat.payment_mode || "")
-          .toLowerCase()
-          .includes(keyword)
+  // ============================================
+  // DAY-WISE COLLECTION
+  // ============================================
+
+  const selectedDayCollections =
+    collections.filter(
+      (flat) =>
+        flat.payment_date ===
+        selectedDate
+    );
+
+  const selectedDayTotal =
+    selectedDayCollections.reduce(
+      (
+        sum,
+        flat
+      ) =>
+        sum +
+        Number(
+          flat.subscription_amount ||
+            0
+        ),
+      0
+    );
+
+  const selectedDayCash =
+    selectedDayCollections
+      .filter(
+        (flat) =>
+          flat.payment_mode ===
+          "Cash"
+      )
+      .reduce(
+        (
+          sum,
+          flat
+        ) =>
+          sum +
+          Number(
+            flat.subscription_amount ||
+              0
+          ),
+        0
       );
-    });
+
+  const selectedDayUPI =
+    selectedDayCollections
+      .filter(
+        (flat) =>
+          flat.payment_mode ===
+          "UPI"
+      )
+      .reduce(
+        (
+          sum,
+          flat
+        ) =>
+          sum +
+          Number(
+            flat.subscription_amount ||
+              0
+          ),
+        0
+      );
 
   const formatAmount = (
     amount:
@@ -164,7 +321,9 @@ export default function MyCollectionsPage() {
     );
 
   const formatDate = (
-    date: string | null
+    date:
+      | string
+      | null
   ) => {
     if (!date) {
       return "-";
@@ -186,6 +345,7 @@ export default function MyCollectionsPage() {
     return (
       <ProtectedRoute>
         <AppLayout>
+
           <div className="flex items-center justify-center h-[70vh]">
 
             <h2 className="text-2xl font-semibold">
@@ -193,6 +353,7 @@ export default function MyCollectionsPage() {
             </h2>
 
           </div>
+
         </AppLayout>
       </ProtectedRoute>
     );
@@ -217,6 +378,7 @@ export default function MyCollectionsPage() {
               <p className="text-gray-500 mt-2">
                 View and edit subscriptions
                 collected by{" "}
+
                 <span className="font-semibold text-blue-800">
                   {username}
                 </span>
@@ -231,7 +393,9 @@ export default function MyCollectionsPage() {
 
               <input
                 type="text"
-                value={search}
+                value={
+                  search
+                }
                 onChange={(e) =>
                   setSearch(
                     e.target.value
@@ -374,11 +538,203 @@ export default function MyCollectionsPage() {
 
           </div>
 
+          {/* ============================================
+              DAY-WISE COLLECTION
+          ============================================ */}
+
+          <div className="bg-white rounded-2xl shadow-lg border p-6">
+
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 mb-6">
+
+              <div>
+
+                <h2 className="text-2xl font-bold text-blue-900">
+                  Day-wise Collection
+                </h2>
+
+                <p className="text-gray-500 mt-1">
+                  View your collection summary for a selected date.
+                </p>
+
+              </div>
+
+              {/* Date Picker */}
+
+              <div>
+
+                <label className="block text-sm font-semibold text-gray-600 mb-2">
+                  Select Date
+                </label>
+
+                <div className="flex items-center gap-3">
+
+                  <FaCalendarDay className="text-blue-600 text-xl" />
+
+                  <input
+                    type="date"
+                    value={
+                      selectedDate
+                    }
+                    onChange={(e) =>
+                      setSelectedDate(
+                        e.target.value
+                      )
+                    }
+                    className="border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+
+                </div>
+
+              </div>
+
+            </div>
+
+            <div className="mb-5 text-gray-500">
+
+              Showing collection for{" "}
+
+              <span className="font-semibold text-blue-900">
+                {formatDate(
+                  selectedDate
+                )}
+              </span>
+
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+
+              {/* Flats Collected */}
+
+              <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5">
+
+                <div className="flex items-center justify-between">
+
+                  <div>
+
+                    <p className="text-gray-500">
+                      Flats Collected
+                    </p>
+
+                    <h3 className="text-3xl font-bold text-blue-900 mt-2">
+                      {
+                        selectedDayCollections.length
+                      }
+                    </h3>
+
+                  </div>
+
+                  <FaHome className="text-3xl text-blue-600" />
+
+                </div>
+
+              </div>
+
+              {/* Total Collection */}
+
+              <div className="bg-green-50 border border-green-100 rounded-2xl p-5">
+
+                <div className="flex items-center justify-between">
+
+                  <div>
+
+                    <p className="text-gray-500">
+                      Total Collection
+                    </p>
+
+                    <h3 className="text-3xl font-bold text-green-700 mt-2">
+                      ₹
+                      {formatAmount(
+                        selectedDayTotal
+                      )}
+                    </h3>
+
+                  </div>
+
+                  <FaRupeeSign className="text-3xl text-green-600" />
+
+                </div>
+
+              </div>
+
+              {/* Cash Collection */}
+
+              <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-5">
+
+                <div className="flex items-center justify-between">
+
+                  <div>
+
+                    <p className="text-gray-500">
+                      Cash Collection
+                    </p>
+
+                    <h3 className="text-3xl font-bold text-emerald-700 mt-2">
+                      ₹
+                      {formatAmount(
+                        selectedDayCash
+                      )}
+                    </h3>
+
+                  </div>
+
+                  <FaMoneyBill className="text-3xl text-emerald-600" />
+
+                </div>
+
+              </div>
+
+              {/* UPI Collection */}
+
+              <div className="bg-cyan-50 border border-cyan-100 rounded-2xl p-5">
+
+                <div className="flex items-center justify-between">
+
+                  <div>
+
+                    <p className="text-gray-500">
+                      UPI Collection
+                    </p>
+
+                    <h3 className="text-3xl font-bold text-cyan-700 mt-2">
+                      ₹
+                      {formatAmount(
+                        selectedDayUPI
+                      )}
+                    </h3>
+
+                  </div>
+
+                  <FaMobileAlt className="text-3xl text-cyan-600" />
+
+                </div>
+
+              </div>
+
+            </div>
+
+            {selectedDayCollections.length ===
+              0 && (
+
+              <div className="mt-5 bg-gray-50 border rounded-xl p-4 text-center text-gray-500">
+
+                No collections found for{" "}
+                {formatDate(
+                  selectedDate
+                )}
+                .
+
+              </div>
+
+            )}
+
+          </div>
+
           {/* Results Count */}
 
           <div className="bg-white rounded-xl shadow border p-5">
 
             <p className="text-gray-500">
+
               Showing{" "}
 
               <span className="font-bold text-blue-900">
@@ -396,6 +752,7 @@ export default function MyCollectionsPage() {
 
               {" "}
               collected flats
+
             </p>
 
           </div>
@@ -456,12 +813,16 @@ export default function MyCollectionsPage() {
                     <tr>
 
                       <td
-                        colSpan={8}
+                        colSpan={
+                          8
+                        }
                         className="text-center py-14 text-gray-500"
                       >
+
                         {search
                           ? "No matching collections found."
                           : "You have not collected any subscriptions yet."}
+
                       </td>
 
                     </tr>
@@ -469,7 +830,9 @@ export default function MyCollectionsPage() {
                   ) : (
 
                     filteredCollections.map(
-                      (flat) => (
+                      (
+                        flat
+                      ) => (
 
                         <tr
                           key={
@@ -525,9 +888,11 @@ export default function MyCollectionsPage() {
                               )}`}
                               className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg shadow transition"
                             >
+
                               <FaEdit />
 
                               Edit
+
                             </Link>
 
                           </td>
