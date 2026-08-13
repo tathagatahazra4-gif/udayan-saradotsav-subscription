@@ -92,7 +92,6 @@ export default function BuildingsPage() {
       );
     }
 
-    // Fallback for normal text searches
     return buildingName.includes(
       normalizedKeyword
     );
@@ -109,6 +108,11 @@ export default function BuildingsPage() {
       )}`
     );
   }
+
+  const formatAmount = (amount: number) =>
+    Number(
+      amount || 0
+    ).toLocaleString("en-IN");
 
   if (loading) {
     return (
@@ -211,6 +215,8 @@ export default function BuildingsPage() {
                   className="relative bg-white rounded-2xl shadow-lg p-5 md:p-6 hover:shadow-xl transition-shadow duration-300"
                 >
 
+                  {/* Building Header */}
+
                   <div className="flex justify-between items-center">
 
                     <div>
@@ -229,7 +235,7 @@ export default function BuildingsPage() {
 
                   </div>
 
-                  {/* Statistics */}
+                  {/* Main Statistics */}
 
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6">
 
@@ -264,8 +270,87 @@ export default function BuildingsPage() {
                       </p>
 
                       <h3 className="text-lg md:text-xl font-bold text-purple-700 break-words">
-                        ₹{building.collection}
+                        ₹
+                        {formatAmount(
+                          building.collection
+                        )}
                       </h3>
+
+                    </div>
+
+                  </div>
+
+                  {/* Payment Mode Breakdown */}
+
+                  <div className="mt-6 border-t pt-5">
+
+                    <p className="text-sm font-semibold text-gray-700 mb-4">
+                      Payment Mode Breakdown
+                    </p>
+
+                    <div className="grid grid-cols-2 gap-4">
+
+                      {/* Cash Count */}
+
+                      <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4">
+
+                        <p className="text-gray-500 text-sm">
+                          Cash Collections
+                        </p>
+
+                        <h3 className="text-xl font-bold text-emerald-700 mt-1">
+                          {building.cashCount || 0}
+                        </h3>
+
+                      </div>
+
+                      {/* UPI Count */}
+
+                      <div className="bg-cyan-50 border border-cyan-100 rounded-xl p-4">
+
+                        <p className="text-gray-500 text-sm">
+                          UPI Collections
+                        </p>
+
+                        <h3 className="text-xl font-bold text-cyan-700 mt-1">
+                          {building.upiCount || 0}
+                        </h3>
+
+                      </div>
+
+                      {/* Cash Amount */}
+
+                      <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4">
+
+                        <p className="text-gray-500 text-sm">
+                          Total Cash
+                        </p>
+
+                        <h3 className="text-lg md:text-xl font-bold text-emerald-700 mt-1">
+                          ₹
+                          {formatAmount(
+                            building.cashCollection
+                          )}
+                        </h3>
+
+                      </div>
+
+                      {/* UPI Amount */}
+
+                      <div className="bg-cyan-50 border border-cyan-100 rounded-xl p-4">
+
+                        <p className="text-gray-500 text-sm">
+                          Total UPI
+                        </p>
+
+                        <h3 className="text-lg md:text-xl font-bold text-cyan-700 mt-1">
+                          ₹
+                          {formatAmount(
+                            building.upiCollection
+                          )}
+                        </h3>
+
+                      </div>
 
                     </div>
 
