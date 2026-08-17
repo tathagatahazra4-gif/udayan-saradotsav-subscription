@@ -345,15 +345,11 @@ export default function MyCollectionsPage() {
     return (
       <ProtectedRoute>
         <AppLayout>
-
           <div className="flex items-center justify-center h-[70vh]">
-
             <h2 className="text-2xl font-semibold">
               Loading My Collections...
             </h2>
-
           </div>
-
         </AppLayout>
       </ProtectedRoute>
     );
@@ -370,7 +366,6 @@ export default function MyCollectionsPage() {
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
 
             <div>
-
               <h1 className="text-4xl font-bold text-blue-900">
                 My Collections
               </h1>
@@ -384,7 +379,6 @@ export default function MyCollectionsPage() {
                 </span>
                 .
               </p>
-
             </div>
 
             <div className="relative w-full lg:w-96">
@@ -393,9 +387,7 @@ export default function MyCollectionsPage() {
 
               <input
                 type="text"
-                value={
-                  search
-                }
+                value={search}
                 onChange={(e) =>
                   setSearch(
                     e.target.value
@@ -412,11 +404,9 @@ export default function MyCollectionsPage() {
           {/* Error */}
 
           {error && (
-
             <div className="bg-red-50 border border-red-300 text-red-700 rounded-xl p-4">
               {error}
             </div>
-
           )}
 
           {/* Summary Cards */}
@@ -427,7 +417,7 @@ export default function MyCollectionsPage() {
 
             <div className="bg-white rounded-2xl shadow-lg border p-5 md:p-6 overflow-hidden">
 
-              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
+              <div className="grid grid-cols-[minmax(0,1fr)_56px] items-center gap-3">
 
                 <div className="min-w-0">
 
@@ -435,16 +425,23 @@ export default function MyCollectionsPage() {
                     Flats Collected
                   </p>
 
-                  <h2 className="text-3xl md:text-4xl font-bold text-blue-900 mt-2 leading-tight">
+                  <h2
+                    className="
+                      mt-2
+                      font-bold
+                      text-blue-900
+                      leading-none
+                      whitespace-nowrap
+                      text-[clamp(1.5rem,2vw,2.25rem)]
+                    "
+                  >
                     {totalFlats}
                   </h2>
 
                 </div>
 
-                <div className="shrink-0 w-14 h-14 md:w-16 md:h-16 bg-blue-100 text-blue-700 text-2xl md:text-3xl rounded-2xl flex items-center justify-center">
-
+                <div className="shrink-0 w-14 h-14 bg-blue-100 text-blue-700 text-2xl md:text-3xl rounded-2xl flex items-center justify-center">
                   <FaHome />
-
                 </div>
 
               </div>
@@ -455,7 +452,7 @@ export default function MyCollectionsPage() {
 
             <div className="bg-white rounded-2xl shadow-lg border p-5 md:p-6 overflow-hidden">
 
-              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
+              <div className="grid grid-cols-[minmax(0,1fr)_56px] items-center gap-3">
 
                 <div className="min-w-0">
 
@@ -465,28 +462,23 @@ export default function MyCollectionsPage() {
 
                   <h2
                     className="
-                      text-2xl
-                      md:text-3xl
+                      mt-2
                       font-bold
                       text-green-700
-                      mt-2
-                      leading-tight
-                      max-w-full
-                      [overflow-wrap:anywhere]
+                      leading-none
+                      whitespace-nowrap
+                      text-[clamp(1.35rem,1.75vw,2rem)]
                     "
                   >
-                    ₹
-                    {formatAmount(
+                    ₹{formatAmount(
                       totalCollection
                     )}
                   </h2>
 
                 </div>
 
-                <div className="shrink-0 w-14 h-14 md:w-16 md:h-16 bg-green-100 text-green-700 text-2xl md:text-3xl rounded-2xl flex items-center justify-center">
-
+                <div className="shrink-0 w-14 h-14 bg-green-100 text-green-700 text-2xl md:text-3xl rounded-2xl flex items-center justify-center">
                   <FaRupeeSign />
-
                 </div>
 
               </div>
@@ -497,7 +489,7 @@ export default function MyCollectionsPage() {
 
             <div className="bg-white rounded-2xl shadow-lg border p-5 md:p-6 overflow-hidden">
 
-              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
+              <div className="grid grid-cols-[minmax(0,1fr)_56px] items-center gap-3">
 
                 <div className="min-w-0">
 
@@ -507,28 +499,23 @@ export default function MyCollectionsPage() {
 
                   <h2
                     className="
-                      text-2xl
-                      md:text-3xl
+                      mt-2
                       font-bold
                       text-emerald-700
-                      mt-2
-                      leading-tight
-                      max-w-full
-                      [overflow-wrap:anywhere]
+                      leading-none
+                      whitespace-nowrap
+                      text-[clamp(1.35rem,1.75vw,2rem)]
                     "
                   >
-                    ₹
-                    {formatAmount(
+                    ₹{formatAmount(
                       cashCollection
                     )}
                   </h2>
 
                 </div>
 
-                <div className="shrink-0 w-14 h-14 md:w-16 md:h-16 bg-emerald-100 text-emerald-700 text-2xl md:text-3xl rounded-2xl flex items-center justify-center">
-
+                <div className="shrink-0 w-14 h-14 bg-emerald-100 text-emerald-700 text-2xl md:text-3xl rounded-2xl flex items-center justify-center">
                   <FaMoneyBill />
-
                 </div>
 
               </div>
@@ -539,7 +526,7 @@ export default function MyCollectionsPage() {
 
             <div className="bg-white rounded-2xl shadow-lg border p-5 md:p-6 overflow-hidden">
 
-              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
+              <div className="grid grid-cols-[minmax(0,1fr)_56px] items-center gap-3">
 
                 <div className="min-w-0">
 
@@ -549,28 +536,23 @@ export default function MyCollectionsPage() {
 
                   <h2
                     className="
-                      text-2xl
-                      md:text-3xl
+                      mt-2
                       font-bold
                       text-cyan-700
-                      mt-2
-                      leading-tight
-                      max-w-full
-                      [overflow-wrap:anywhere]
+                      leading-none
+                      whitespace-nowrap
+                      text-[clamp(1.35rem,1.75vw,2rem)]
                     "
                   >
-                    ₹
-                    {formatAmount(
+                    ₹{formatAmount(
                       upiCollection
                     )}
                   </h2>
 
                 </div>
 
-                <div className="shrink-0 w-14 h-14 md:w-16 md:h-16 bg-cyan-100 text-cyan-700 text-2xl md:text-3xl rounded-2xl flex items-center justify-center">
-
+                <div className="shrink-0 w-14 h-14 bg-cyan-100 text-cyan-700 text-2xl md:text-3xl rounded-2xl flex items-center justify-center">
                   <FaMobileAlt />
-
                 </div>
 
               </div>
@@ -588,7 +570,6 @@ export default function MyCollectionsPage() {
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 mb-6">
 
               <div>
-
                 <h2 className="text-2xl font-bold text-blue-900">
                   Day-wise Collection
                 </h2>
@@ -596,10 +577,7 @@ export default function MyCollectionsPage() {
                 <p className="text-gray-500 mt-1">
                   View your collection summary for a selected date.
                 </p>
-
               </div>
-
-              {/* Date Picker */}
 
               <div>
 
@@ -613,9 +591,7 @@ export default function MyCollectionsPage() {
 
                   <input
                     type="date"
-                    value={
-                      selectedDate
-                    }
+                    value={selectedDate}
                     onChange={(e) =>
                       setSelectedDate(
                         e.target.value
@@ -648,7 +624,7 @@ export default function MyCollectionsPage() {
 
               <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5 overflow-hidden">
 
-                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
+                <div className="grid grid-cols-[minmax(0,1fr)_44px] items-center gap-3">
 
                   <div className="min-w-0">
 
@@ -656,18 +632,23 @@ export default function MyCollectionsPage() {
                       Flats Collected
                     </p>
 
-                    <h3 className="text-2xl md:text-3xl font-bold text-blue-900 mt-2 leading-tight">
-                      {
-                        selectedDayCollections.length
-                      }
+                    <h3
+                      className="
+                        mt-2
+                        font-bold
+                        text-blue-900
+                        leading-none
+                        whitespace-nowrap
+                        text-[clamp(1.4rem,1.8vw,1.875rem)]
+                      "
+                    >
+                      {selectedDayCollections.length}
                     </h3>
 
                   </div>
 
                   <div className="shrink-0 w-11 h-11 flex items-center justify-center">
-
                     <FaHome className="text-3xl text-blue-600" />
-
                   </div>
 
                 </div>
@@ -678,7 +659,7 @@ export default function MyCollectionsPage() {
 
               <div className="bg-green-50 border border-green-100 rounded-2xl p-5 overflow-hidden">
 
-                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
+                <div className="grid grid-cols-[minmax(0,1fr)_44px] items-center gap-3">
 
                   <div className="min-w-0">
 
@@ -688,18 +669,15 @@ export default function MyCollectionsPage() {
 
                     <h3
                       className="
-                        text-2xl
-                        md:text-3xl
+                        mt-2
                         font-bold
                         text-green-700
-                        mt-2
-                        leading-tight
-                        max-w-full
-                        [overflow-wrap:anywhere]
+                        leading-none
+                        whitespace-nowrap
+                        text-[clamp(1.25rem,1.6vw,1.75rem)]
                       "
                     >
-                      ₹
-                      {formatAmount(
+                      ₹{formatAmount(
                         selectedDayTotal
                       )}
                     </h3>
@@ -707,9 +685,7 @@ export default function MyCollectionsPage() {
                   </div>
 
                   <div className="shrink-0 w-11 h-11 flex items-center justify-center">
-
                     <FaRupeeSign className="text-3xl text-green-600" />
-
                   </div>
 
                 </div>
@@ -720,7 +696,7 @@ export default function MyCollectionsPage() {
 
               <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-5 overflow-hidden">
 
-                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
+                <div className="grid grid-cols-[minmax(0,1fr)_44px] items-center gap-3">
 
                   <div className="min-w-0">
 
@@ -730,18 +706,15 @@ export default function MyCollectionsPage() {
 
                     <h3
                       className="
-                        text-2xl
-                        md:text-3xl
+                        mt-2
                         font-bold
                         text-emerald-700
-                        mt-2
-                        leading-tight
-                        max-w-full
-                        [overflow-wrap:anywhere]
+                        leading-none
+                        whitespace-nowrap
+                        text-[clamp(1.25rem,1.6vw,1.75rem)]
                       "
                     >
-                      ₹
-                      {formatAmount(
+                      ₹{formatAmount(
                         selectedDayCash
                       )}
                     </h3>
@@ -749,9 +722,7 @@ export default function MyCollectionsPage() {
                   </div>
 
                   <div className="shrink-0 w-11 h-11 flex items-center justify-center">
-
                     <FaMoneyBill className="text-3xl text-emerald-600" />
-
                   </div>
 
                 </div>
@@ -762,7 +733,7 @@ export default function MyCollectionsPage() {
 
               <div className="bg-cyan-50 border border-cyan-100 rounded-2xl p-5 overflow-hidden">
 
-                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
+                <div className="grid grid-cols-[minmax(0,1fr)_44px] items-center gap-3">
 
                   <div className="min-w-0">
 
@@ -772,18 +743,15 @@ export default function MyCollectionsPage() {
 
                     <h3
                       className="
-                        text-2xl
-                        md:text-3xl
+                        mt-2
                         font-bold
                         text-cyan-700
-                        mt-2
-                        leading-tight
-                        max-w-full
-                        [overflow-wrap:anywhere]
+                        leading-none
+                        whitespace-nowrap
+                        text-[clamp(1.25rem,1.6vw,1.75rem)]
                       "
                     >
-                      ₹
-                      {formatAmount(
+                      ₹{formatAmount(
                         selectedDayUPI
                       )}
                     </h3>
@@ -791,9 +759,7 @@ export default function MyCollectionsPage() {
                   </div>
 
                   <div className="shrink-0 w-11 h-11 flex items-center justify-center">
-
                     <FaMobileAlt className="text-3xl text-cyan-600" />
-
                   </div>
 
                 </div>
@@ -858,7 +824,6 @@ export default function MyCollectionsPage() {
                 <thead className="bg-blue-900 text-white">
 
                   <tr>
-
                     <th className="p-4 text-left">
                       Flat
                     </th>
@@ -890,7 +855,6 @@ export default function MyCollectionsPage() {
                     <th className="p-4 text-center">
                       Action
                     </th>
-
                   </tr>
 
                 </thead>
@@ -903,16 +867,12 @@ export default function MyCollectionsPage() {
                     <tr>
 
                       <td
-                        colSpan={
-                          8
-                        }
+                        colSpan={8}
                         className="text-center py-14 text-gray-500"
                       >
-
                         {search
                           ? "No matching collections found."
                           : "You have not collected any subscriptions yet."}
-
                       </td>
 
                     </tr>
@@ -920,9 +880,7 @@ export default function MyCollectionsPage() {
                   ) : (
 
                     filteredCollections.map(
-                      (
-                        flat
-                      ) => (
+                      (flat) => (
 
                         <tr
                           key={
@@ -980,7 +938,6 @@ export default function MyCollectionsPage() {
                             >
 
                               <FaEdit />
-
                               Edit
 
                             </Link>

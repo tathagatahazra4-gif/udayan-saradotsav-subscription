@@ -22,7 +22,7 @@ export default function StatCard({
         rounded-2xl
         shadow-lg
         p-4
-        md:p-6
+        md:p-5
         text-white
         transition-all
         duration-300
@@ -35,16 +35,20 @@ export default function StatCard({
     >
       <div
         className={`
-          flex
+          grid
+          ${icon
+            ? "grid-cols-[minmax(0,1fr)_48px] md:grid-cols-[minmax(0,1fr)_56px]"
+            : "grid-cols-1"
+          }
           items-center
-          justify-between
-          gap-4
+          gap-3
           h-full
+          w-full
         `}
       >
         {/* Text Section */}
 
-        <div className="flex-1 min-w-0">
+        <div className="min-w-0 overflow-visible">
           <p className="text-xs md:text-sm opacity-90 font-medium leading-snug">
             {title}
           </p>
@@ -52,15 +56,10 @@ export default function StatCard({
           <h2
             className="
               mt-2
-              text-xl
-              sm:text-2xl
-              md:text-3xl
-              xl:text-4xl
               font-bold
               leading-none
               whitespace-nowrap
-              overflow-hidden
-              text-ellipsis
+              text-[clamp(1.25rem,2.1vw,2rem)]
             "
           >
             {value}
@@ -72,18 +71,15 @@ export default function StatCard({
         {icon && (
           <div
             className="
-              flex-shrink-0
-              w-10
-              h-10
-              sm:w-12
-              sm:h-12
+              shrink-0
+              w-12
+              h-12
               md:w-14
               md:h-14
               flex
               items-center
               justify-center
               text-2xl
-              sm:text-3xl
               md:text-4xl
               opacity-80
             "
