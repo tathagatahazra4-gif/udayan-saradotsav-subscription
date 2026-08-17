@@ -11,44 +11,83 @@ function getToday() {
 // ======================================================
 
 export function exportToExcel(data: any[]) {
-  const rows = data.map((row) => ({
-    "Flat Number": row.flat_number,
-    "Owner Name": row.owner_name || "",
-    "Mobile Number": row.mobile_number || "",
-    "Family Members": row.family_members || 0,
-    "Subscription Amount":
-      row.subscription_amount || 0,
-    Status: row.status,
-    "Payment Mode":
-      row.payment_mode || "",
-    "Receipt Number":
-      row.receipt_number || "",
-    "Transaction ID":
-      row.transaction_id || "",
-    "Collected By":
-      row.collected_by || "",
-    Remarks:
-      row.remarks || row.comments || "",
-    "Payment Date":
-      row.payment_date || "",
-  }));
+  const rows = data.map((row) => {
+    const paidAmount =
+      Number(
+        row.subscription_amount || 0
+      );
+
+    const subscriptionAmount =
+      paidAmount > 1300
+        ? 1300
+        : paidAmount;
+
+    const extraDonation =
+      paidAmount > 1300
+        ? paidAmount - 1300
+        : 0;
+
+    return {
+      "Flat Number":
+        row.flat_number,
+
+      "Owner Name":
+        row.owner_name || "",
+
+      "Mobile Number":
+        row.mobile_number || "",
+
+      "Family Members":
+        row.family_members || 0,
+
+      "Subscription Amount":
+        subscriptionAmount,
+
+      "Extra Donation":
+        extraDonation,
+
+      Status:
+        row.status,
+
+      "Payment Mode":
+        row.payment_mode || "",
+
+      "Receipt Number":
+        row.receipt_number || "",
+
+      "Transaction ID":
+        row.transaction_id || "",
+
+      "Collected By":
+        row.collected_by || "",
+
+      Remarks:
+        row.remarks ||
+        row.comments ||
+        "",
+
+      "Payment Date":
+        row.payment_date || "",
+    };
+  });
 
   const worksheet =
     XLSX.utils.json_to_sheet(rows);
 
   worksheet["!cols"] = [
-    { wch: 15 },
-    { wch: 25 },
-    { wch: 18 },
-    { wch: 15 },
-    { wch: 18 },
-    { wch: 12 },
-    { wch: 18 },
-    { wch: 18 },
-    { wch: 25 },
-    { wch: 20 },
-    { wch: 30 },
-    { wch: 18 },
+    { wch: 15 }, // Flat Number
+    { wch: 25 }, // Owner Name
+    { wch: 18 }, // Mobile Number
+    { wch: 15 }, // Family Members
+    { wch: 20 }, // Subscription Amount
+    { wch: 18 }, // Extra Donation
+    { wch: 12 }, // Status
+    { wch: 18 }, // Payment Mode
+    { wch: 18 }, // Receipt Number
+    { wch: 25 }, // Transaction ID
+    { wch: 20 }, // Collected By
+    { wch: 30 }, // Remarks
+    { wch: 18 }, // Payment Date
   ];
 
   const workbook =
@@ -157,6 +196,9 @@ export function exportSponsorsToExcel(
     "Voucher ID":
       row.voucher_id || "",
 
+    "Point Of Contact":
+      row.point_of_contact || "",
+
     "Collected By":
       row.collected_by || "",
 
@@ -168,13 +210,14 @@ export function exportSponsorsToExcel(
     XLSX.utils.json_to_sheet(rows);
 
   worksheet["!cols"] = [
-    { wch: 30 },
-    { wch: 15 },
-    { wch: 18 },
-    { wch: 20 },
-    { wch: 18 },
-    { wch: 22 },
-    { wch: 18 },
+    { wch: 30 }, // Company Name
+    { wch: 15 }, // Amount
+    { wch: 18 }, // Payment Mode
+    { wch: 20 }, // Cheque Number
+    { wch: 18 }, // Voucher ID
+    { wch: 25 }, // Point Of Contact
+    { wch: 22 }, // Collected By
+    { wch: 18 }, // Collection Date
   ];
 
   const workbook =

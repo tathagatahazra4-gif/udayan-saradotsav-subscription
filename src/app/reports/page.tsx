@@ -98,6 +98,14 @@ export default function ReportsPage() {
   ] =
     useState(true);
 
+  const [
+    exportingReport,
+    setExportingReport,
+  ] =
+    useState<string | null>(
+      null
+    );
+
   useEffect(() => {
     async function load() {
       try {
@@ -243,7 +251,6 @@ export default function ReportsPage() {
 
   // ============================================
   // FULL SUBSCRIPTION TOTAL
-  // Used for overall collection summary
   // ============================================
 
   const subscriptionTotal =
@@ -295,22 +302,151 @@ export default function ReportsPage() {
       "en-IN"
     );
 
-  function handleOverallSummaryExport() {
-    exportOverallCollectionSummary(
-      {
-        subscriptionCollection:
-          subscriptionTotal,
+  // ============================================
+  // EXPORT HANDLERS
+  // ============================================
 
-        donationCollection:
-          donationTotal,
-
-        sponsorCollection:
-          sponsorTotal,
-
-        governmentGrantCollection:
-          governmentGrantTotal,
-      }
+  function finishExport() {
+    window.setTimeout(
+      () => {
+        setExportingReport(
+          null
+        );
+      },
+      500
     );
+  }
+
+  function handleSubscriptionExport() {
+    if (
+      loadingExports ||
+      exportingReport
+    ) {
+      return;
+    }
+
+    try {
+      setExportingReport(
+        "subscriptions"
+      );
+
+      exportToExcel(
+        filtered
+      );
+    } catch (err) {
+      console.error(
+        "Subscription export failed:",
+        err
+      );
+
+      alert(
+        "Failed to export subscription report."
+      );
+    } finally {
+      finishExport();
+    }
+  }
+
+  function handleDonationExport() {
+    if (
+      loadingExports ||
+      exportingReport
+    ) {
+      return;
+    }
+
+    try {
+      setExportingReport(
+        "donations"
+      );
+
+      exportDonationsToExcel(
+        donations
+      );
+    } catch (err) {
+      console.error(
+        "Donation export failed:",
+        err
+      );
+
+      alert(
+        "Failed to export donation report."
+      );
+    } finally {
+      finishExport();
+    }
+  }
+
+  function handleSponsorExport() {
+    if (
+      loadingExports ||
+      exportingReport
+    ) {
+      return;
+    }
+
+    try {
+      setExportingReport(
+        "sponsors"
+      );
+
+      exportSponsorsToExcel(
+        sponsors
+      );
+    } catch (err) {
+      console.error(
+        "Sponsor export failed:",
+        err
+      );
+
+      alert(
+        "Failed to export sponsor report."
+      );
+    } finally {
+      finishExport();
+    }
+  }
+
+  function handleOverallSummaryExport() {
+    if (
+      loadingExports ||
+      exportingReport
+    ) {
+      return;
+    }
+
+    try {
+      setExportingReport(
+        "overall"
+      );
+
+      exportOverallCollectionSummary(
+        {
+          subscriptionCollection:
+            subscriptionTotal,
+
+          donationCollection:
+            donationTotal,
+
+          sponsorCollection:
+            sponsorTotal,
+
+          governmentGrantCollection:
+            governmentGrantTotal,
+        }
+      );
+    } catch (err) {
+      console.error(
+        "Overall summary export failed:",
+        err
+      );
+
+      alert(
+        "Failed to export overall collection summary."
+      );
+    } finally {
+      finishExport();
+    }
   }
 
   return (
@@ -337,7 +473,7 @@ export default function ReportsPage() {
               EXPORT REPORTS
           ============================================ */}
 
-          <div className="bg-white rounded-2xl shadow-lg border p-6">
+          <div className="relative z-10 bg-white rounded-2xl shadow-lg border p-6">
 
             <div className="mb-6">
 
@@ -351,26 +487,59 @@ export default function ReportsPage() {
 
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+            <div className="relative z-10 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
 
               {/* Subscription Export */}
 
               <button
                 type="button"
-                onClick={() =>
-                  exportToExcel(
-                    filtered
-                  )
+                onClick={
+                  handleSubscriptionExport
                 }
                 disabled={
-                  loadingExports
+                  loadingExports ||
+                  exportingReport !==
+                    null
                 }
-                className="flex flex-col items-center justify-center gap-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white rounded-xl p-6 shadow-lg transition font-semibold"
+                className="
+                  relative
+                  z-20
+                  w-full
+                  min-h-[130px]
+                  flex
+                  flex-col
+                  items-center
+                  justify-center
+                  gap-3
+                  bg-green-600
+                  hover:bg-green-700
+                  active:bg-green-800
+                  disabled:bg-gray-400
+                  disabled:cursor-not-allowed
+                  text-white
+                  rounded-xl
+                  p-6
+                  shadow-lg
+                  font-semibold
+                  transition
+                  touch-manipulation
+                  select-none
+                  cursor-pointer
+                "
               >
-                <FaFileExcel className="text-4xl" />
 
-                <span>
-                  Export Subscriptions
+                <FaFileExcel
+                  className="
+                    text-4xl
+                    pointer-events-none
+                  "
+                />
+
+                <span className="pointer-events-none text-center">
+                  {exportingReport ===
+                  "subscriptions"
+                    ? "Exporting..."
+                    : "Export Subscriptions"}
                 </span>
 
               </button>
@@ -379,20 +548,53 @@ export default function ReportsPage() {
 
               <button
                 type="button"
-                onClick={() =>
-                  exportDonationsToExcel(
-                    donations
-                  )
+                onClick={
+                  handleDonationExport
                 }
                 disabled={
-                  loadingExports
+                  loadingExports ||
+                  exportingReport !==
+                    null
                 }
-                className="flex flex-col items-center justify-center gap-3 bg-pink-600 hover:bg-pink-700 disabled:bg-gray-400 text-white rounded-xl p-6 shadow-lg transition font-semibold"
+                className="
+                  relative
+                  z-20
+                  w-full
+                  min-h-[130px]
+                  flex
+                  flex-col
+                  items-center
+                  justify-center
+                  gap-3
+                  bg-pink-600
+                  hover:bg-pink-700
+                  active:bg-pink-800
+                  disabled:bg-gray-400
+                  disabled:cursor-not-allowed
+                  text-white
+                  rounded-xl
+                  p-6
+                  shadow-lg
+                  font-semibold
+                  transition
+                  touch-manipulation
+                  select-none
+                  cursor-pointer
+                "
               >
-                <FaHandHoldingHeart className="text-4xl" />
 
-                <span>
-                  Export Donations
+                <FaHandHoldingHeart
+                  className="
+                    text-4xl
+                    pointer-events-none
+                  "
+                />
+
+                <span className="pointer-events-none text-center">
+                  {exportingReport ===
+                  "donations"
+                    ? "Exporting..."
+                    : "Export Donations"}
                 </span>
 
               </button>
@@ -401,20 +603,53 @@ export default function ReportsPage() {
 
               <button
                 type="button"
-                onClick={() =>
-                  exportSponsorsToExcel(
-                    sponsors
-                  )
+                onClick={
+                  handleSponsorExport
                 }
                 disabled={
-                  loadingExports
+                  loadingExports ||
+                  exportingReport !==
+                    null
                 }
-                className="flex flex-col items-center justify-center gap-3 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white rounded-xl p-6 shadow-lg transition font-semibold"
+                className="
+                  relative
+                  z-20
+                  w-full
+                  min-h-[130px]
+                  flex
+                  flex-col
+                  items-center
+                  justify-center
+                  gap-3
+                  bg-purple-600
+                  hover:bg-purple-700
+                  active:bg-purple-800
+                  disabled:bg-gray-400
+                  disabled:cursor-not-allowed
+                  text-white
+                  rounded-xl
+                  p-6
+                  shadow-lg
+                  font-semibold
+                  transition
+                  touch-manipulation
+                  select-none
+                  cursor-pointer
+                "
               >
-                <FaBullhorn className="text-4xl" />
 
-                <span>
-                  Export Sponsors / Ads
+                <FaBullhorn
+                  className="
+                    text-4xl
+                    pointer-events-none
+                  "
+                />
+
+                <span className="pointer-events-none text-center">
+                  {exportingReport ===
+                  "sponsors"
+                    ? "Exporting..."
+                    : "Export Sponsors / Ads"}
                 </span>
 
               </button>
@@ -427,14 +662,49 @@ export default function ReportsPage() {
                   handleOverallSummaryExport
                 }
                 disabled={
-                  loadingExports
+                  loadingExports ||
+                  exportingReport !==
+                    null
                 }
-                className="flex flex-col items-center justify-center gap-3 bg-blue-700 hover:bg-blue-800 disabled:bg-gray-400 text-white rounded-xl p-6 shadow-lg transition font-semibold"
+                className="
+                  relative
+                  z-20
+                  w-full
+                  min-h-[130px]
+                  flex
+                  flex-col
+                  items-center
+                  justify-center
+                  gap-3
+                  bg-blue-700
+                  hover:bg-blue-800
+                  active:bg-blue-900
+                  disabled:bg-gray-400
+                  disabled:cursor-not-allowed
+                  text-white
+                  rounded-xl
+                  p-6
+                  shadow-lg
+                  font-semibold
+                  transition
+                  touch-manipulation
+                  select-none
+                  cursor-pointer
+                "
               >
-                <FaChartPie className="text-4xl" />
 
-                <span>
-                  Export Overall Summary
+                <FaChartPie
+                  className="
+                    text-4xl
+                    pointer-events-none
+                  "
+                />
+
+                <span className="pointer-events-none text-center">
+                  {exportingReport ===
+                  "overall"
+                    ? "Exporting..."
+                    : "Export Overall Summary"}
                 </span>
 
               </button>
@@ -463,7 +733,7 @@ export default function ReportsPage() {
                   Subscriptions
                 </p>
 
-                <h3 className="text-2xl font-bold text-green-700 mt-2">
+                <h3 className="text-2xl font-bold text-green-700 mt-2 whitespace-nowrap">
                   ₹
                   {formatAmount(
                     subscriptionTotal
@@ -480,7 +750,7 @@ export default function ReportsPage() {
                   Donations
                 </p>
 
-                <h3 className="text-2xl font-bold text-pink-700 mt-2">
+                <h3 className="text-2xl font-bold text-pink-700 mt-2 whitespace-nowrap">
                   ₹
                   {formatAmount(
                     donationTotal
@@ -497,7 +767,7 @@ export default function ReportsPage() {
                   Sponsors / Ads
                 </p>
 
-                <h3 className="text-2xl font-bold text-purple-700 mt-2">
+                <h3 className="text-2xl font-bold text-purple-700 mt-2 whitespace-nowrap">
                   ₹
                   {formatAmount(
                     sponsorTotal
@@ -514,7 +784,7 @@ export default function ReportsPage() {
                   Government Grants
                 </p>
 
-                <h3 className="text-2xl font-bold text-teal-700 mt-2">
+                <h3 className="text-2xl font-bold text-teal-700 mt-2 whitespace-nowrap">
                   ₹
                   {formatAmount(
                     governmentGrantTotal
@@ -531,7 +801,7 @@ export default function ReportsPage() {
                   Grand Total
                 </p>
 
-                <h3 className="text-3xl font-bold mt-2">
+                <h3 className="text-3xl font-bold mt-2 whitespace-nowrap">
                   ₹
                   {formatAmount(
                     grandTotal
@@ -566,7 +836,7 @@ export default function ReportsPage() {
                       Filtered Collection
                     </p>
 
-                    <h2 className="text-3xl font-bold mt-2">
+                    <h2 className="text-3xl font-bold mt-2 whitespace-nowrap">
                       ₹
                       {formatAmount(
                         totalCollection
@@ -575,7 +845,7 @@ export default function ReportsPage() {
 
                   </div>
 
-                  <FaMoneyBillWave className="text-4xl opacity-80" />
+                  <FaMoneyBillWave className="shrink-0 text-4xl opacity-80" />
 
                 </div>
 
@@ -599,7 +869,7 @@ export default function ReportsPage() {
 
                   </div>
 
-                  <FaList className="text-4xl opacity-80" />
+                  <FaList className="shrink-0 text-4xl opacity-80" />
 
                 </div>
 
@@ -623,7 +893,7 @@ export default function ReportsPage() {
 
                   </div>
 
-                  <FaCheckCircle className="text-4xl opacity-80" />
+                  <FaCheckCircle className="shrink-0 text-4xl opacity-80" />
 
                 </div>
 
@@ -647,7 +917,7 @@ export default function ReportsPage() {
 
                   </div>
 
-                  <FaTimesCircle className="text-4xl opacity-80" />
+                  <FaTimesCircle className="shrink-0 text-4xl opacity-80" />
 
                 </div>
 
@@ -689,6 +959,7 @@ export default function ReportsPage() {
                 }
                 className="border rounded-lg px-4 py-3 w-full lg:w-56"
               >
+
                 <option>
                   All
                 </option>
@@ -700,6 +971,7 @@ export default function ReportsPage() {
                 <option>
                   Pending
                 </option>
+
               </select>
 
             </div>
@@ -790,7 +1062,7 @@ export default function ReportsPage() {
                             "-"}
                         </td>
 
-                        <td className="p-4 text-center font-semibold">
+                        <td className="p-4 text-center font-semibold whitespace-nowrap">
                           ₹
                           {formatAmount(
                             row.subscription_amount
