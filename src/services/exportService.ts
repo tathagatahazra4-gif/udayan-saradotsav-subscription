@@ -1,5 +1,18 @@
 import * as XLSX from "xlsx";
 
+import {
+  Filesystem,
+  Directory,
+} from "@capacitor/filesystem";
+
+import {
+  Capacitor,
+} from "@capacitor/core";
+
+// ======================================================
+// DATE
+// ======================================================
+
 function getToday() {
   return new Date()
     .toISOString()
@@ -7,15 +20,102 @@ function getToday() {
 }
 
 // ======================================================
+// SAVE WORKBOOK
+//
+// Desktop / browser:
+// XLSX.writeFile()
+//
+// Capacitor Android / native:
+// Generate Base64 XLSX and save using Filesystem
+// ======================================================
+
+async function saveWorkbook(
+  workbook: XLSX.WorkBook,
+  fileName: string
+) {
+  try {
+    const isNative =
+      Capacitor.isNativePlatform();
+
+    // ============================================
+    // NORMAL DESKTOP / MOBILE BROWSER
+    // ============================================
+
+    if (!isNative) {
+      XLSX.writeFile(
+        workbook,
+        fileName
+      );
+
+      return;
+    }
+
+    // ============================================
+    // CAPACITOR ANDROID / NATIVE APP
+    // ============================================
+
+    const base64Data =
+      XLSX.write(
+        workbook,
+        {
+          bookType: "xlsx",
+          type: "base64",
+        }
+      );
+
+    const result =
+      await Filesystem.writeFile({
+        path: fileName,
+
+        data: base64Data,
+
+        directory:
+          Directory.Documents,
+
+        recursive: true,
+      });
+
+    console.log(
+      "Excel report saved:",
+      result.uri
+    );
+
+    alert(
+      `Report saved successfully.\n\nFile: ${fileName}`
+    );
+  } catch (error) {
+    console.error(
+      "Failed to save Excel report:",
+      error
+    );
+
+    alert(
+      "Failed to save Excel report."
+    );
+
+    throw error;
+  }
+}
+
+// ======================================================
 // SUBSCRIPTION EXPORT
 // ======================================================
 
-export function exportToExcel(data: any[]) {
+export async function exportToExcel(
+  data: any[]
+) {
   const rows = data.map((row) => {
     const paidAmount =
       Number(
         row.subscription_amount || 0
       );
+
+    // Normal yearly subscription = ₹1300
+    //
+    // Example:
+    // ₹1300 -> Subscription ₹1300 / Extra ₹0
+    // ₹1500 -> Subscription ₹1300 / Extra ₹200
+    // ₹2500 -> Subscription ₹1300 / Extra ₹1200
 
     const subscriptionAmount =
       paidAmount > 1300
@@ -72,7 +172,9 @@ export function exportToExcel(data: any[]) {
   });
 
   const worksheet =
-    XLSX.utils.json_to_sheet(rows);
+    XLSX.utils.json_to_sheet(
+      rows
+    );
 
   worksheet["!cols"] = [
     { wch: 15 }, // Flat Number
@@ -99,7 +201,7 @@ export function exportToExcel(data: any[]) {
     "Subscriptions"
   );
 
-  XLSX.writeFile(
+  await saveWorkbook(
     workbook,
     `Udayan_Subscription_Report_${getToday()}.xlsx`
   );
@@ -109,53 +211,59 @@ export function exportToExcel(data: any[]) {
 // DONATION EXPORT
 // ======================================================
 
-export function exportDonationsToExcel(
+export async function exportDonationsToExcel(
   data: any[]
 ) {
-  const rows = data.map((row) => ({
-    "Donor Name":
-      row.donor_name || "",
+  const rows = data.map(
+    (row) => ({
+      "Donor Name":
+        row.donor_name || "",
 
-    Amount:
-      Number(row.amount || 0),
+      Amount:
+        Number(
+          row.amount || 0
+        ),
 
-    "Flat Number":
-      row.flat_number || "",
+      "Flat Number":
+        row.flat_number || "",
 
-    "Mobile Number":
-      row.mobile_number || "",
+      "Mobile Number":
+        row.mobile_number || "",
 
-    "Bill Number":
-      row.bill_number || "",
+      "Bill Number":
+        row.bill_number || "",
 
-    "Payment Mode":
-      row.payment_mode || "",
+      "Payment Mode":
+        row.payment_mode || "",
 
-    "Purpose / Remarks":
-      row.purpose || "",
+      "Purpose / Remarks":
+        row.purpose || "",
 
-    "Collected By":
-      row.collected_by ||
-      row.created_by ||
-      "",
+      "Collected By":
+        row.collected_by ||
+        row.created_by ||
+        "",
 
-    "Donation Date":
-      row.donation_date || "",
-  }));
+      "Donation Date":
+        row.donation_date || "",
+    })
+  );
 
   const worksheet =
-    XLSX.utils.json_to_sheet(rows);
+    XLSX.utils.json_to_sheet(
+      rows
+    );
 
   worksheet["!cols"] = [
-    { wch: 28 },
-    { wch: 15 },
-    { wch: 18 },
-    { wch: 18 },
-    { wch: 18 },
-    { wch: 18 },
-    { wch: 40 },
-    { wch: 22 },
-    { wch: 18 },
+    { wch: 28 }, // Donor
+    { wch: 15 }, // Amount
+    { wch: 18 }, // Flat
+    { wch: 18 }, // Mobile
+    { wch: 18 }, // Bill
+    { wch: 18 }, // Mode
+    { wch: 40 }, // Purpose
+    { wch: 22 }, // Collected By
+    { wch: 18 }, // Date
   ];
 
   const workbook =
@@ -167,7 +275,7 @@ export function exportDonationsToExcel(
     "Donations"
   );
 
-  XLSX.writeFile(
+  await saveWorkbook(
     workbook,
     `Udayan_Donation_Report_${getToday()}.xlsx`
   );
@@ -177,47 +285,55 @@ export function exportDonationsToExcel(
 // SPONSOR / ADVERTISEMENT EXPORT
 // ======================================================
 
-export function exportSponsorsToExcel(
+export async function exportSponsorsToExcel(
   data: any[]
 ) {
-  const rows = data.map((row) => ({
-    "Company Name":
-      row.company_name || "",
+  const rows = data.map(
+    (row) => ({
+      "Company Name":
+        row.company_name || "",
 
-    Amount:
-      Number(row.amount || 0),
+      Amount:
+        Number(
+          row.amount || 0
+        ),
 
-    "Payment Mode":
-      row.payment_mode || "",
+      "Payment Mode":
+        row.payment_mode || "",
 
-    "Cheque Number":
-      row.cheque_number || "",
+      "Cheque Number":
+        row.cheque_number || "",
 
-    "Voucher ID":
-      row.voucher_id || "",
+      "Voucher ID":
+        row.voucher_id || "",
 
-    "Point Of Contact":
-      row.point_of_contact || "",
+      "Point Of Contact":
+        row.point_of_contact || "",
 
-    "Collected By":
-      row.collected_by || "",
+      "Collected By":
+        row.collected_by ||
+        row.created_by ||
+        "",
 
-    "Collection Date":
-      row.collection_date || "",
-  }));
+      "Collection Date":
+        row.collection_date || "",
+    })
+  );
 
   const worksheet =
-    XLSX.utils.json_to_sheet(rows);
+    XLSX.utils.json_to_sheet(
+      rows
+    );
 
   worksheet["!cols"] = [
-    { wch: 30 }, // Company Name
+    { wch: 30 }, // Company
     { wch: 15 }, // Amount
     { wch: 18 }, // Payment Mode
-    { wch: 20 }, // Cheque Number
-    { wch: 18 }, // Voucher ID
+    { wch: 20 }, // Cheque
+    { wch: 18 }, // Voucher
     { wch: 25 }, // Point Of Contact
     { wch: 22 }, // Collected By
-    { wch: 18 }, // Collection Date
+    { wch: 18 }, // Date
   ];
 
   const workbook =
@@ -229,7 +345,7 @@ export function exportSponsorsToExcel(
     "Sponsors"
   );
 
-  XLSX.writeFile(
+  await saveWorkbook(
     workbook,
     `Udayan_Sponsor_Report_${getToday()}.xlsx`
   );
@@ -239,7 +355,7 @@ export function exportSponsorsToExcel(
 // OVERALL COLLECTION SUMMARY EXPORT
 // ======================================================
 
-export function exportOverallCollectionSummary(
+export async function exportOverallCollectionSummary(
   values: {
     subscriptionCollection: number;
     donationCollection: number;
@@ -249,16 +365,20 @@ export function exportOverallCollectionSummary(
 ) {
   const grandTotal =
     Number(
-      values.subscriptionCollection || 0
+      values.subscriptionCollection ||
+        0
     ) +
     Number(
-      values.donationCollection || 0
+      values.donationCollection ||
+        0
     ) +
     Number(
-      values.sponsorCollection || 0
+      values.sponsorCollection ||
+        0
     ) +
     Number(
-      values.governmentGrantCollection || 0
+      values.governmentGrantCollection ||
+        0
     );
 
   const rows = [
@@ -316,7 +436,9 @@ export function exportOverallCollectionSummary(
   ];
 
   const worksheet =
-    XLSX.utils.json_to_sheet(rows);
+    XLSX.utils.json_to_sheet(
+      rows
+    );
 
   worksheet["!cols"] = [
     { wch: 32 },
@@ -332,7 +454,7 @@ export function exportOverallCollectionSummary(
     "Collection Summary"
   );
 
-  XLSX.writeFile(
+  await saveWorkbook(
     workbook,
     `Udayan_Overall_Collection_Summary_${getToday()}.xlsx`
   );
