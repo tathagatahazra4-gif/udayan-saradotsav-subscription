@@ -21,34 +21,79 @@ export default function StatCard({
         ${color}
         rounded-2xl
         shadow-lg
-        p-4 md:p-6
+        p-4
+        md:p-6
         text-white
         transition-all
         duration-300
-        hover:scale-105
+        hover:scale-[1.02]
         hover:shadow-xl
         min-h-[130px]
         md:min-h-[160px]
-        flex
-        items-center
+        overflow-hidden
       `}
     >
-      <div className="flex justify-between items-center w-full">
+      <div
+        className={`
+          grid
+          ${icon
+            ? "grid-cols-[minmax(0,1fr)_auto]"
+            : "grid-cols-1"
+          }
+          items-center
+          gap-3
+          md:gap-4
+          h-full
+        `}
+      >
 
-        <div className="flex-1">
+        {/* Text Section */}
 
-          <p className="text-xs md:text-sm opacity-90 font-medium">
+        <div className="min-w-0">
+
+          <p className="text-xs md:text-sm opacity-90 font-medium leading-snug">
             {title}
           </p>
 
-          <h2 className="text-2xl md:text-4xl font-bold mt-2 break-words">
+          <h2
+            className="
+              mt-2
+              text-xl
+              sm:text-2xl
+              md:text-3xl
+              xl:text-3xl
+              font-bold
+              leading-tight
+              max-w-full
+              [overflow-wrap:anywhere]
+            "
+          >
             {value}
           </h2>
 
         </div>
 
+        {/* Icon Section */}
+
         {icon && (
-          <div className="text-3xl md:text-5xl opacity-80 ml-4 shrink-0">
+          <div
+            className="
+              shrink-0
+              w-10
+              h-10
+              sm:w-12
+              sm:h-12
+              md:w-14
+              md:h-14
+              flex
+              items-center
+              justify-center
+              text-2xl
+              sm:text-3xl
+              md:text-4xl
+              opacity-80
+            "
+          >
             {icon}
           </div>
         )}

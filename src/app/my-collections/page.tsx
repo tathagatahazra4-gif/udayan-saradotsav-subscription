@@ -425,24 +425,26 @@ export default function MyCollectionsPage() {
 
             {/* Flats Collected */}
 
-            <div className="bg-white rounded-2xl shadow-lg border p-6">
+            <div className="bg-white rounded-2xl shadow-lg border p-5 md:p-6 overflow-hidden">
 
-              <div className="flex items-center justify-between">
+              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
 
-                <div>
+                <div className="min-w-0">
 
                   <p className="text-gray-500 font-medium">
                     Flats Collected
                   </p>
 
-                  <h2 className="text-4xl font-bold text-blue-900 mt-2">
+                  <h2 className="text-3xl md:text-4xl font-bold text-blue-900 mt-2 leading-tight">
                     {totalFlats}
                   </h2>
 
                 </div>
 
-                <div className="bg-blue-100 text-blue-700 text-3xl p-5 rounded-2xl">
+                <div className="shrink-0 w-14 h-14 md:w-16 md:h-16 bg-blue-100 text-blue-700 text-2xl md:text-3xl rounded-2xl flex items-center justify-center">
+
                   <FaHome />
+
                 </div>
 
               </div>
@@ -451,17 +453,28 @@ export default function MyCollectionsPage() {
 
             {/* Total Collection */}
 
-            <div className="bg-white rounded-2xl shadow-lg border p-6">
+            <div className="bg-white rounded-2xl shadow-lg border p-5 md:p-6 overflow-hidden">
 
-              <div className="flex items-center justify-between">
+              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
 
-                <div>
+                <div className="min-w-0">
 
                   <p className="text-gray-500 font-medium">
                     Total Collection
                   </p>
 
-                  <h2 className="text-4xl font-bold text-green-700 mt-2">
+                  <h2
+                    className="
+                      text-2xl
+                      md:text-3xl
+                      font-bold
+                      text-green-700
+                      mt-2
+                      leading-tight
+                      max-w-full
+                      [overflow-wrap:anywhere]
+                    "
+                  >
                     ₹
                     {formatAmount(
                       totalCollection
@@ -470,8 +483,10 @@ export default function MyCollectionsPage() {
 
                 </div>
 
-                <div className="bg-green-100 text-green-700 text-3xl p-5 rounded-2xl">
+                <div className="shrink-0 w-14 h-14 md:w-16 md:h-16 bg-green-100 text-green-700 text-2xl md:text-3xl rounded-2xl flex items-center justify-center">
+
                   <FaRupeeSign />
+
                 </div>
 
               </div>
@@ -480,17 +495,28 @@ export default function MyCollectionsPage() {
 
             {/* Cash Collection */}
 
-            <div className="bg-white rounded-2xl shadow-lg border p-6">
+            <div className="bg-white rounded-2xl shadow-lg border p-5 md:p-6 overflow-hidden">
 
-              <div className="flex items-center justify-between">
+              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
 
-                <div>
+                <div className="min-w-0">
 
                   <p className="text-gray-500 font-medium">
                     Cash Collection
                   </p>
 
-                  <h2 className="text-4xl font-bold text-emerald-700 mt-2">
+                  <h2
+                    className="
+                      text-2xl
+                      md:text-3xl
+                      font-bold
+                      text-emerald-700
+                      mt-2
+                      leading-tight
+                      max-w-full
+                      [overflow-wrap:anywhere]
+                    "
+                  >
                     ₹
                     {formatAmount(
                       cashCollection
@@ -499,8 +525,10 @@ export default function MyCollectionsPage() {
 
                 </div>
 
-                <div className="bg-emerald-100 text-emerald-700 text-3xl p-5 rounded-2xl">
+                <div className="shrink-0 w-14 h-14 md:w-16 md:h-16 bg-emerald-100 text-emerald-700 text-2xl md:text-3xl rounded-2xl flex items-center justify-center">
+
                   <FaMoneyBill />
+
                 </div>
 
               </div>
@@ -509,17 +537,28 @@ export default function MyCollectionsPage() {
 
             {/* UPI Collection */}
 
-            <div className="bg-white rounded-2xl shadow-lg border p-6">
+            <div className="bg-white rounded-2xl shadow-lg border p-5 md:p-6 overflow-hidden">
 
-              <div className="flex items-center justify-between">
+              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
 
-                <div>
+                <div className="min-w-0">
 
                   <p className="text-gray-500 font-medium">
                     UPI Collection
                   </p>
 
-                  <h2 className="text-4xl font-bold text-cyan-700 mt-2">
+                  <h2
+                    className="
+                      text-2xl
+                      md:text-3xl
+                      font-bold
+                      text-cyan-700
+                      mt-2
+                      leading-tight
+                      max-w-full
+                      [overflow-wrap:anywhere]
+                    "
+                  >
                     ₹
                     {formatAmount(
                       upiCollection
@@ -528,8 +567,10 @@ export default function MyCollectionsPage() {
 
                 </div>
 
-                <div className="bg-cyan-100 text-cyan-700 text-3xl p-5 rounded-2xl">
+                <div className="shrink-0 w-14 h-14 md:w-16 md:h-16 bg-cyan-100 text-cyan-700 text-2xl md:text-3xl rounded-2xl flex items-center justify-center">
+
                   <FaMobileAlt />
+
                 </div>
 
               </div>
@@ -542,7 +583,7 @@ export default function MyCollectionsPage() {
               DAY-WISE COLLECTION
           ============================================ */}
 
-          <div className="bg-white rounded-2xl shadow-lg border p-6">
+          <div className="bg-white rounded-2xl shadow-lg border p-6 overflow-hidden">
 
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 mb-6">
 
@@ -568,7 +609,7 @@ export default function MyCollectionsPage() {
 
                 <div className="flex items-center gap-3">
 
-                  <FaCalendarDay className="text-blue-600 text-xl" />
+                  <FaCalendarDay className="shrink-0 text-blue-600 text-xl" />
 
                   <input
                     type="date"
@@ -605,17 +646,17 @@ export default function MyCollectionsPage() {
 
               {/* Flats Collected */}
 
-              <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5">
+              <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5 overflow-hidden">
 
-                <div className="flex items-center justify-between">
+                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
 
-                  <div>
+                  <div className="min-w-0">
 
                     <p className="text-gray-500">
                       Flats Collected
                     </p>
 
-                    <h3 className="text-3xl font-bold text-blue-900 mt-2">
+                    <h3 className="text-2xl md:text-3xl font-bold text-blue-900 mt-2 leading-tight">
                       {
                         selectedDayCollections.length
                       }
@@ -623,7 +664,11 @@ export default function MyCollectionsPage() {
 
                   </div>
 
-                  <FaHome className="text-3xl text-blue-600" />
+                  <div className="shrink-0 w-11 h-11 flex items-center justify-center">
+
+                    <FaHome className="text-3xl text-blue-600" />
+
+                  </div>
 
                 </div>
 
@@ -631,17 +676,28 @@ export default function MyCollectionsPage() {
 
               {/* Total Collection */}
 
-              <div className="bg-green-50 border border-green-100 rounded-2xl p-5">
+              <div className="bg-green-50 border border-green-100 rounded-2xl p-5 overflow-hidden">
 
-                <div className="flex items-center justify-between">
+                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
 
-                  <div>
+                  <div className="min-w-0">
 
                     <p className="text-gray-500">
                       Total Collection
                     </p>
 
-                    <h3 className="text-3xl font-bold text-green-700 mt-2">
+                    <h3
+                      className="
+                        text-2xl
+                        md:text-3xl
+                        font-bold
+                        text-green-700
+                        mt-2
+                        leading-tight
+                        max-w-full
+                        [overflow-wrap:anywhere]
+                      "
+                    >
                       ₹
                       {formatAmount(
                         selectedDayTotal
@@ -650,7 +706,11 @@ export default function MyCollectionsPage() {
 
                   </div>
 
-                  <FaRupeeSign className="text-3xl text-green-600" />
+                  <div className="shrink-0 w-11 h-11 flex items-center justify-center">
+
+                    <FaRupeeSign className="text-3xl text-green-600" />
+
+                  </div>
 
                 </div>
 
@@ -658,17 +718,28 @@ export default function MyCollectionsPage() {
 
               {/* Cash Collection */}
 
-              <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-5">
+              <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-5 overflow-hidden">
 
-                <div className="flex items-center justify-between">
+                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
 
-                  <div>
+                  <div className="min-w-0">
 
                     <p className="text-gray-500">
                       Cash Collection
                     </p>
 
-                    <h3 className="text-3xl font-bold text-emerald-700 mt-2">
+                    <h3
+                      className="
+                        text-2xl
+                        md:text-3xl
+                        font-bold
+                        text-emerald-700
+                        mt-2
+                        leading-tight
+                        max-w-full
+                        [overflow-wrap:anywhere]
+                      "
+                    >
                       ₹
                       {formatAmount(
                         selectedDayCash
@@ -677,7 +748,11 @@ export default function MyCollectionsPage() {
 
                   </div>
 
-                  <FaMoneyBill className="text-3xl text-emerald-600" />
+                  <div className="shrink-0 w-11 h-11 flex items-center justify-center">
+
+                    <FaMoneyBill className="text-3xl text-emerald-600" />
+
+                  </div>
 
                 </div>
 
@@ -685,17 +760,28 @@ export default function MyCollectionsPage() {
 
               {/* UPI Collection */}
 
-              <div className="bg-cyan-50 border border-cyan-100 rounded-2xl p-5">
+              <div className="bg-cyan-50 border border-cyan-100 rounded-2xl p-5 overflow-hidden">
 
-                <div className="flex items-center justify-between">
+                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
 
-                  <div>
+                  <div className="min-w-0">
 
                     <p className="text-gray-500">
                       UPI Collection
                     </p>
 
-                    <h3 className="text-3xl font-bold text-cyan-700 mt-2">
+                    <h3
+                      className="
+                        text-2xl
+                        md:text-3xl
+                        font-bold
+                        text-cyan-700
+                        mt-2
+                        leading-tight
+                        max-w-full
+                        [overflow-wrap:anywhere]
+                      "
+                    >
                       ₹
                       {formatAmount(
                         selectedDayUPI
@@ -704,7 +790,11 @@ export default function MyCollectionsPage() {
 
                   </div>
 
-                  <FaMobileAlt className="text-3xl text-cyan-600" />
+                  <div className="shrink-0 w-11 h-11 flex items-center justify-center">
+
+                    <FaMobileAlt className="text-3xl text-cyan-600" />
+
+                  </div>
 
                 </div>
 
