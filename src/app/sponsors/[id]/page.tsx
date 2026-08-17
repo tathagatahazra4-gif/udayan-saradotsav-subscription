@@ -61,6 +61,9 @@ export default function EditSponsorPage() {
 
           voucher_id:
             data.voucher_id ?? "",
+
+          point_of_contact:
+            data.point_of_contact ?? "",
         });
       } catch (err) {
         console.error(err);
@@ -77,7 +80,9 @@ export default function EditSponsorPage() {
       }
     }
 
-    loadSponsor();
+    if (id) {
+      loadSponsor();
+    }
   }, [id, router]);
 
   if (loading) {
@@ -135,6 +140,11 @@ export default function EditSponsorPage() {
         form.voucher_id ?? ""
       ).trim();
 
+    const pointOfContact =
+      String(
+        form.point_of_contact ?? ""
+      ).trim();
+
     if (!companyName) {
       alert(
         "Company Name is required."
@@ -181,6 +191,9 @@ export default function EditSponsorPage() {
 
           voucher_id:
             voucherId,
+
+          point_of_contact:
+            pointOfContact,
         }
       );
 
@@ -223,7 +236,8 @@ export default function EditSponsorPage() {
 
               <p className="font-semibold text-yellow-800">
                 This record was created by{" "}
-                {form.created_by}.
+                {form.created_by ||
+                  "another user"}.
               </p>
 
               <p className="text-sm text-yellow-700 mt-1">
@@ -259,6 +273,7 @@ export default function EditSponsorPage() {
                   })
                 }
                 className="w-full border rounded-lg p-3 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                placeholder="Enter company name"
               />
 
             </div>
@@ -287,6 +302,7 @@ export default function EditSponsorPage() {
                   })
                 }
                 className="w-full border rounded-lg p-3 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                placeholder="Enter amount"
               />
 
             </div>
@@ -366,6 +382,7 @@ export default function EditSponsorPage() {
                   })
                 }
                 className="w-full border rounded-lg p-3 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                placeholder="Enter cheque number"
               />
 
             </div>
@@ -402,6 +419,38 @@ export default function EditSponsorPage() {
 
             </div>
 
+            {/* Point Of Contact */}
+
+            <div>
+
+              <label className="block font-semibold mb-2">
+                Point Of Contact
+                <span className="text-gray-400 font-normal">
+                  {" "}
+                  (Optional)
+                </span>
+              </label>
+
+              <input
+                type="text"
+                disabled={!canEdit}
+                value={
+                  form.point_of_contact
+                }
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+
+                    point_of_contact:
+                      e.target.value,
+                  })
+                }
+                placeholder="Enter person who brought the sponsor"
+                className="w-full border rounded-lg p-3 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              />
+
+            </div>
+
             {/* Created By */}
 
             <div>
@@ -413,7 +462,9 @@ export default function EditSponsorPage() {
               <input
                 type="text"
                 value={
-                  form.created_by || ""
+                  form.created_by ||
+                  form.collected_by ||
+                  ""
                 }
                 readOnly
                 disabled

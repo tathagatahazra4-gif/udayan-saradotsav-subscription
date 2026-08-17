@@ -7,6 +7,7 @@ export async function addSponsor(values: {
   payment_mode: string;
   cheque_number: string;
   voucher_id: string;
+  point_of_contact: string;
 }) {
   const user = getLoggedInUser();
 
@@ -25,6 +26,9 @@ export async function addSponsor(values: {
 
   const voucherId =
     values.voucher_id.trim();
+
+  const pointOfContact =
+    values.point_of_contact.trim();
 
   if (!companyName) {
     throw new Error(
@@ -53,24 +57,37 @@ export async function addSponsor(values: {
     await supabase
       .from("advertisement_sponsors")
       .insert({
-        company_name: companyName,
+        company_name:
+          companyName,
 
-        amount: values.amount,
+        amount:
+          values.amount,
 
-        payment_mode: paymentMode,
+        payment_mode:
+          paymentMode,
 
-        cheque_number: chequeNumber,
+        cheque_number:
+          chequeNumber,
 
-        voucher_id: voucherId,
+        voucher_id:
+          voucherId,
 
-        collected_by: user.username,
+        point_of_contact:
+          pointOfContact,
 
-        created_by: user.username,
+        collected_by:
+          user.username,
 
-        updated_by: user.username,
+        created_by:
+          user.username,
+
+        updated_by:
+          user.username,
 
         collection_date:
-          now.toISOString().split("T")[0],
+          now
+            .toISOString()
+            .split("T")[0],
 
         collection_timestamp:
           now.toISOString(),
@@ -142,6 +159,7 @@ export async function updateSponsor(
     payment_mode: string;
     cheque_number: string;
     voucher_id: string;
+    point_of_contact: string;
   }
 ) {
   const user = getLoggedInUser();
@@ -196,6 +214,9 @@ export async function updateSponsor(
   const voucherId =
     values.voucher_id.trim();
 
+  const pointOfContact =
+    values.point_of_contact.trim();
+
   if (!companyName) {
     throw new Error(
       "Company Name is required."
@@ -221,16 +242,25 @@ export async function updateSponsor(
     await supabase
       .from("advertisement_sponsors")
       .update({
-        company_name: companyName,
+        company_name:
+          companyName,
 
-        amount: values.amount,
+        amount:
+          values.amount,
 
-        payment_mode: paymentMode,
+        payment_mode:
+          paymentMode,
 
-        cheque_number: chequeNumber,
+        cheque_number:
+          chequeNumber,
 
-        voucher_id: voucherId,
+        voucher_id:
+          voucherId,
 
+        point_of_contact:
+          pointOfContact,
+
+        // Original creator remains unchanged
         updated_by:
           user.username,
 
@@ -266,7 +296,9 @@ export async function getSponsorTotal() {
   return (data ?? []).reduce(
     (sum, row) =>
       sum +
-      Number(row.amount || 0),
+      Number(
+        row.amount || 0
+      ),
     0
   );
 }

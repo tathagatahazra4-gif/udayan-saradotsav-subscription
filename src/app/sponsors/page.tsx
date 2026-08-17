@@ -38,6 +38,7 @@ export default function SponsorsPage() {
       payment_mode: "",
       cheque_number: "",
       voucher_id: "",
+      point_of_contact: "",
     });
 
   async function loadSponsors() {
@@ -111,6 +112,9 @@ export default function SponsorsPage() {
 
         voucher_id:
           form.voucher_id,
+
+        point_of_contact:
+          form.point_of_contact,
       });
 
       alert(
@@ -123,6 +127,7 @@ export default function SponsorsPage() {
         payment_mode: "",
         cheque_number: "",
         voucher_id: "",
+        point_of_contact: "",
       });
 
       await loadSponsors();
@@ -353,7 +358,7 @@ export default function SponsorsPage() {
 
               {/* Voucher ID */}
 
-              <div className="md:col-span-2">
+              <div>
 
                 <label className="font-semibold block mb-2">
                   Voucher ID
@@ -381,6 +386,36 @@ export default function SponsorsPage() {
 
               </div>
 
+              {/* Point Of Contact */}
+
+              <div>
+
+                <label className="font-semibold block mb-2">
+                  Point Of Contact
+                  <span className="text-gray-400 font-normal">
+                    {" "}
+                    (Optional)
+                  </span>
+                </label>
+
+                <input
+                  value={
+                    form.point_of_contact
+                  }
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+
+                      point_of_contact:
+                        e.target.value,
+                    })
+                  }
+                  className="w-full border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter person who brought the sponsor"
+                />
+
+              </div>
+
             </div>
 
             <button
@@ -404,7 +439,7 @@ export default function SponsorsPage() {
 
           <div className="bg-white rounded-2xl shadow-lg border overflow-x-auto">
 
-            <table className="min-w-[1100px] w-full">
+            <table className="min-w-[1250px] w-full">
 
               <thead className="bg-blue-900 text-white">
 
@@ -430,6 +465,10 @@ export default function SponsorsPage() {
                     Voucher ID
                   </th>
 
+                  <th className="p-4 text-left">
+                    Point Of Contact
+                  </th>
+
                   <th className="p-4 text-center">
                     Collected By
                   </th>
@@ -449,7 +488,7 @@ export default function SponsorsPage() {
                   <tr>
 
                     <td
-                      colSpan={7}
+                      colSpan={8}
                       className="text-center py-10"
                     >
                       Loading...
@@ -462,7 +501,7 @@ export default function SponsorsPage() {
                   <tr>
 
                     <td
-                      colSpan={7}
+                      colSpan={8}
                       className="text-center py-10 text-gray-500"
                     >
                       No sponsor records found.
@@ -486,7 +525,7 @@ export default function SponsorsPage() {
                           }
                         </td>
 
-                        <td className="p-4 text-center font-bold text-green-700">
+                        <td className="p-4 text-center font-bold text-green-700 whitespace-nowrap">
                           ₹
                           {formatAmount(
                             sponsor.amount
@@ -506,6 +545,11 @@ export default function SponsorsPage() {
 
                         <td className="p-4 text-center whitespace-nowrap font-semibold text-blue-800">
                           {sponsor.voucher_id ||
+                            "-"}
+                        </td>
+
+                        <td className="p-4">
+                          {sponsor.point_of_contact ||
                             "-"}
                         </td>
 
