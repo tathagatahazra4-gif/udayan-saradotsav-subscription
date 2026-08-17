@@ -35,22 +35,16 @@ export default function StatCard({
     >
       <div
         className={`
-          grid
-          ${icon
-            ? "grid-cols-[minmax(0,1fr)_auto]"
-            : "grid-cols-1"
-          }
+          flex
           items-center
-          gap-3
-          md:gap-4
+          justify-between
+          gap-4
           h-full
         `}
       >
-
         {/* Text Section */}
 
-        <div className="min-w-0">
-
+        <div className="flex-1 min-w-0">
           <p className="text-xs md:text-sm opacity-90 font-medium leading-snug">
             {title}
           </p>
@@ -61,16 +55,16 @@ export default function StatCard({
               text-xl
               sm:text-2xl
               md:text-3xl
-              xl:text-3xl
+              xl:text-4xl
               font-bold
-              leading-tight
-              max-w-full
-              [overflow-wrap:anywhere]
+              leading-none
+              whitespace-nowrap
+              overflow-hidden
+              text-ellipsis
             "
           >
             {value}
           </h2>
-
         </div>
 
         {/* Icon Section */}
@@ -78,7 +72,7 @@ export default function StatCard({
         {icon && (
           <div
             className="
-              shrink-0
+              flex-shrink-0
               w-10
               h-10
               sm:w-12
@@ -97,7 +91,6 @@ export default function StatCard({
             {icon}
           </div>
         )}
-
       </div>
     </div>
   );
